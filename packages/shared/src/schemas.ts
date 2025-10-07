@@ -133,3 +133,68 @@ export const settingsSchema = z.object({
   metricsEnabled: z.boolean().default(true),
   backendUrl: z.string().default("http://localhost:3000"),
 });
+
+// TODO Tool Schemas
+
+export const todoStatusSchema = z.enum(["BACKLOG", "IN_PROGRESS", "BLOCKED", "COMPLETED", "ARCHIVED"]);
+export const prioritySchema = z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]);
+
+export const todoCreateInputSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  priority: prioritySchema.optional(),
+  tags: z.array(z.string()).optional(),
+  assignee: z.string().optional(),
+  projectPath: z.string().optional(),
+});
+
+export const todoUpdateInputSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  status: todoStatusSchema.optional(),
+  priority: prioritySchema.optional(),
+  tags: z.array(z.string()).optional(),
+  blockedReason: z.string().optional(),
+  assignee: z.string().optional(),
+});
+
+export const todoListInputSchema = z.object({
+  status: todoStatusSchema.optional(),
+  projectPath: z.string().optional(),
+  priority: prioritySchema.optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const todoArchiveInputSchema = z.object({
+  id: z.string(),
+});
+
+export const todoDeleteInputSchema = z.object({
+  id: z.string(),
+});
+
+export const todoSchema = z.object({
+  id: z.string(),
+  conversationId: z.string(),
+  projectPath: z.string().nullable(),
+  title: z.string(),
+  description: z.string().nullable(),
+  status: todoStatusSchema,
+  priority: prioritySchema.nullable(),
+  tags: z.array(z.string()),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+  completedAt: z.number().nullable(),
+  archivedAt: z.number().nullable(),
+  blockedReason: z.string().nullable(),
+  assignee: z.string().nullable(),
+  metadata: z.record(z.any()).nullable(),
+});
+
+export const todoOutputSchema = z.object({
+  ok: z.boolean(),
+  todo: todoSchema.optional(),
+  todos: z.array(todoSchema).optional(),
+  reason: z.string().optional(),
+});

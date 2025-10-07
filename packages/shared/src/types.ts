@@ -8,6 +8,15 @@ import {
   messageSchema,
   conversationSchema,
   settingsSchema,
+  todoCreateInputSchema,
+  todoUpdateInputSchema,
+  todoListInputSchema,
+  todoArchiveInputSchema,
+  todoDeleteInputSchema,
+  todoSchema,
+  todoOutputSchema,
+  todoStatusSchema,
+  prioritySchema,
 } from "./schemas";
 
 // MCP Tool Types
@@ -15,6 +24,17 @@ export type SpeakInput = z.infer<typeof speakInputSchema>;
 export type SpeakOutput = z.infer<typeof speakOutputSchema>;
 export type ListenInput = z.infer<typeof listenInputSchema>;
 export type ListenOutput = z.infer<typeof listenOutputSchema>;
+
+// TODO Tool Types
+export type TodoCreateInput = z.infer<typeof todoCreateInputSchema>;
+export type TodoUpdateInput = z.infer<typeof todoUpdateInputSchema>;
+export type TodoListInput = z.infer<typeof todoListInputSchema>;
+export type TodoArchiveInput = z.infer<typeof todoArchiveInputSchema>;
+export type TodoDeleteInput = z.infer<typeof todoDeleteInputSchema>;
+export type Todo = z.infer<typeof todoSchema>;
+export type TodoOutput = z.infer<typeof todoOutputSchema>;
+export type TodoStatus = z.infer<typeof todoStatusSchema>;
+export type Priority = z.infer<typeof prioritySchema>;
 
 // API Types
 export type ApiKeys = z.infer<typeof apiKeysSchema>;

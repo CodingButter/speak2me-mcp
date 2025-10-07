@@ -3,12 +3,29 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { Stream } from "@elysiajs/stream";
 import type { Context } from "elysia";
 import type { CoreOperations, SessionManager } from "@stt-mcp/core";
-import { handleSpeak, handleListen } from "@stt-mcp/core/mcp";
+import {
+  handleSpeak,
+  handleListen,
+  handleTodoCreate,
+  handleTodoUpdate,
+  handleTodoList,
+  handleTodoArchive,
+  handleTodoDelete,
+} from "@stt-mcp/core/mcp";
+import { prisma } from "@stt-mcp/database";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { speakInputSchema, listenInputSchema } from "@stt-mcp/shared";
+import {
+  speakInputSchema,
+  listenInputSchema,
+  todoCreateInputSchema,
+  todoUpdateInputSchema,
+  todoListInputSchema,
+  todoArchiveInputSchema,
+  todoDeleteInputSchema,
+} from "@stt-mcp/shared";
 
 /**
  * Create SSE MCP Server for a conversation
@@ -79,6 +96,87 @@ export async function createSSEMCPServer(
             required: ["mode"],
           },
         },
+        {
+          name: "todo_create",
+          description:
+            "Create a new TODO item. Use when the user requests a task to be tracked, or when you identify action items during conversation.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              title: { type: "string", description: "TODO title" },
+              description: { type: "string", description: "Detailed description" },
+              priority: {
+                type: "string",
+                enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                description: "Priority level",
+              },
+              tags: { type: "array", items: { type: "string" }, description: "Tags for categorization" },
+              assignee: { type: "string", description: "Person assigned to this task" },
+              projectPath: { type: "string", description: "Link to specific project" },
+            },
+            required: ["title"],
+          },
+        },
+        {
+          name: "todo_update",
+          description:
+            "Update an existing TODO item. Use when task progress changes, or when marking tasks as in-progress, blocked, or completed.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "TODO ID" },
+              title: { type: "string", description: "Updated title" },
+              description: { type: "string", description: "Updated description" },
+              status: {
+                type: "string",
+                enum: ["BACKLOG", "IN_PROGRESS", "BLOCKED", "COMPLETED", "ARCHIVED"],
+                description: "Task status",
+              },
+              priority: {
+                type: "string",
+                enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                description: "Priority level",
+              },
+              tags: { type: "array", items: { type: "string" }, description: "Updated tags" },
+              blockedReason: { type: "string", description: "Reason if status is BLOCKED" },
+              assignee: { type: "string", description: "Updated assignee" },
+            },
+            required: ["id"],
+          },
+        },
+        {
+          name: "todo_list",
+          description:
+            "List TODO items with optional filters. Use when you need to see task status or get project context.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                enum: ["BACKLOG", "IN_PROGRESS", "BLOCKED", "COMPLETED", "ARCHIVED"],
+                description: "Filter by status",
+              },
+              projectPath: { type: "string", description: "Filter by project" },
+              priority: {
+                type: "string",
+                enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                description: "Filter by priority",
+              },
+              tags: { type: "array", items: { type: "string" }, description: "Filter by tags (match any)" },
+            },
+          },
+        },
+        {
+          name: "todo_archive",
+          description: "Archive a completed TODO item. Use when cleaning up completed tasks.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "TODO ID to archive" },
+            },
+            required: ["id"],
+          },
+        },
       ],
     };
   });
@@ -140,6 +238,63 @@ export async function createSSEMCPServer(
             metrics: result.metrics,
           });
         }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      // TODO Tools
+      if (request.params.name === "todo_create") {
+        const input = todoCreateInputSchema.parse(request.params.arguments);
+        const result = await handleTodoCreate(input, { conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "todo_update") {
+        const input = todoUpdateInputSchema.parse(request.params.arguments);
+        const result = await handleTodoUpdate(input, { conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "todo_list") {
+        const input = todoListInputSchema.parse(request.params.arguments || {});
+        const result = await handleTodoList(input, { conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "todo_archive") {
+        const input = todoArchiveInputSchema.parse(request.params.arguments);
+        const result = await handleTodoArchive(input, { conversationId, prisma });
 
         return {
           content: [
