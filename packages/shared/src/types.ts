@@ -17,6 +17,9 @@ import {
   todoOutputSchema,
   todoStatusSchema,
   prioritySchema,
+  projectLinkInputSchema,
+  projectContextSchema,
+  projectLinkOutputSchema,
 } from "./schemas";
 
 // MCP Tool Types
@@ -35,6 +38,11 @@ export type Todo = z.infer<typeof todoSchema>;
 export type TodoOutput = z.infer<typeof todoOutputSchema>;
 export type TodoStatus = z.infer<typeof todoStatusSchema>;
 export type Priority = z.infer<typeof prioritySchema>;
+
+// Project Link Tool Types
+export type ProjectLinkInput = z.infer<typeof projectLinkInputSchema>;
+export type ProjectContext = z.infer<typeof projectContextSchema>;
+export type ProjectLinkOutput = z.infer<typeof projectLinkOutputSchema>;
 
 // API Types
 export type ApiKeys = z.infer<typeof apiKeysSchema>;

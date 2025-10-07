@@ -59,3 +59,6 @@ export async function handleListen(
 
 // Re-export TODO tools
 export * from "./tools/todo";
+
+// Re-export Project tools
+export * from "./tools/project";

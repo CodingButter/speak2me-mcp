@@ -13,6 +13,10 @@ export interface ProjectContextData {
   projectPath: string;
   projectName: string;
   claudeMdPath: string | null;
+  devCommand: string | null;
+  buildCommand: string | null;
+  testCommand: string | null;
+  stopCommand: string | null;
   settings: Record<string, any> | null;
   createdAt: number;
   lastAccessedAt: number;
@@ -21,6 +25,11 @@ export interface ProjectContextData {
 export interface CreateProjectContextInput {
   conversationId: string;
   projectPath: string;
+  projectName?: string;
+  devCommand?: string;
+  buildCommand?: string;
+  testCommand?: string;
+  stopCommand?: string;
   settings?: Record<string, any>;
 }
 
@@ -29,7 +38,7 @@ export class ProjectContextService {
 
   /**
    * Create a new project context
-   * Auto-detects project name and CLAUDE.md location
+   * Auto-detects project name and CLAUDE.md location if not provided
    */
   async createProjectContext(
     input: CreateProjectContextInput
@@ -37,8 +46,8 @@ export class ProjectContextService {
     // Normalize path
     const normalizedPath = path.resolve(input.projectPath);
 
-    // Extract project name from path
-    const projectName = path.basename(normalizedPath);
+    // Extract project name from path if not provided
+    const projectName = input.projectName || path.basename(normalizedPath);
 
     // Check for CLAUDE.md
     const claudeMdPath = await this.findClaudeMd(normalizedPath);
@@ -49,6 +58,10 @@ export class ProjectContextService {
         projectPath: normalizedPath,
         projectName,
         claudeMdPath,
+        devCommand: input.devCommand || null,
+        buildCommand: input.buildCommand || null,
+        testCommand: input.testCommand || null,
+        stopCommand: input.stopCommand || null,
         settings: input.settings ? JSON.stringify(input.settings) : null,
       },
     });
@@ -256,6 +269,10 @@ export class ProjectContextService {
       projectPath: context.projectPath,
       projectName: context.projectName,
       claudeMdPath: context.claudeMdPath,
+      devCommand: context.devCommand,
+      buildCommand: context.buildCommand,
+      testCommand: context.testCommand,
+      stopCommand: context.stopCommand,
       settings: context.settings ? JSON.parse(context.settings) : null,
       createdAt: context.createdAt.getTime(),
       lastAccessedAt: context.lastAccessedAt.getTime(),

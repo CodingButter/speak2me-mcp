@@ -11,6 +11,9 @@ import {
   handleTodoList,
   handleTodoArchive,
   handleTodoDelete,
+  handleProjectLink,
+  handleProjectGet,
+  handleProjectUnlink,
 } from "@stt-mcp/core/mcp";
 import { prisma } from "@stt-mcp/database";
 import {
@@ -25,6 +28,7 @@ import {
   todoListInputSchema,
   todoArchiveInputSchema,
   todoDeleteInputSchema,
+  projectLinkInputSchema,
 } from "@stt-mcp/shared";
 
 /**
@@ -177,6 +181,40 @@ export async function createSSEMCPServer(
             required: ["id"],
           },
         },
+        {
+          name: "project_link",
+          description:
+            "Link a project to this conversation. Initializes project context with path, commands, and settings. Use this at the start of a project to configure dev server, build, and test commands.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              projectPath: { type: "string", description: "Absolute path to project directory" },
+              projectName: { type: "string", description: "Project name (optional, auto-detected from path)" },
+              devCommand: { type: "string", description: "Command to start dev server (e.g., 'bun run dev')" },
+              buildCommand: { type: "string", description: "Command to build project (e.g., 'bun run build')" },
+              testCommand: { type: "string", description: "Command to run tests (e.g., 'bun test')" },
+              stopCommand: { type: "string", description: "Command to stop dev server (optional)" },
+              settings: { type: "object", description: "Additional project settings (optional)" },
+            },
+            required: ["projectPath"],
+          },
+        },
+        {
+          name: "project_get",
+          description: "Get the currently linked project for this conversation.",
+          inputSchema: {
+            type: "object",
+            properties: {},
+          },
+        },
+        {
+          name: "project_unlink",
+          description: "Unlink the project from this conversation.",
+          inputSchema: {
+            type: "object",
+            properties: {},
+          },
+        },
       ],
     };
   });
@@ -295,6 +333,47 @@ export async function createSSEMCPServer(
       if (request.params.name === "todo_archive") {
         const input = todoArchiveInputSchema.parse(request.params.arguments);
         const result = await handleTodoArchive(input, { conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      // Project Tools
+      if (request.params.name === "project_link") {
+        const input = projectLinkInputSchema.parse(request.params.arguments);
+        const result = await handleProjectLink(input, { conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "project_get") {
+        const result = await handleProjectGet({ conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "project_unlink") {
+        const result = await handleProjectUnlink({ conversationId, prisma });
 
         return {
           content: [

@@ -149,6 +149,12 @@ model ProjectContext {
   projectName    String
   claudeMdPath   String?
 
+  // Project commands
+  devCommand     String?  // Command to start dev server (e.g., "bun run dev")
+  buildCommand   String?  // Command to build project (e.g., "bun run build")
+  testCommand    String?  // Command to run tests (e.g., "bun test")
+  stopCommand    String?  // Command to stop dev server (optional)
+
   // Settings stored as JSON (project-specific VAD, voice preferences, etc.)
   settings       String?  // JSON string
 

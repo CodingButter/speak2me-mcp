@@ -198,3 +198,36 @@ export const todoOutputSchema = z.object({
   todos: z.array(todoSchema).optional(),
   reason: z.string().optional(),
 });
+
+// Project Link Tool Schemas
+
+export const projectLinkInputSchema = z.object({
+  projectPath: z.string().min(1),
+  projectName: z.string().optional(),
+  devCommand: z.string().optional(),
+  buildCommand: z.string().optional(),
+  testCommand: z.string().optional(),
+  stopCommand: z.string().optional(),
+  settings: z.record(z.any()).optional(),
+});
+
+export const projectContextSchema = z.object({
+  id: z.string(),
+  conversationId: z.string(),
+  projectPath: z.string(),
+  projectName: z.string(),
+  claudeMdPath: z.string().nullable(),
+  devCommand: z.string().nullable(),
+  buildCommand: z.string().nullable(),
+  testCommand: z.string().nullable(),
+  stopCommand: z.string().nullable(),
+  settings: z.record(z.any()).nullable(),
+  createdAt: z.number(),
+  lastAccessedAt: z.number(),
+});
+
+export const projectLinkOutputSchema = z.object({
+  ok: z.boolean(),
+  projectContext: projectContextSchema.optional(),
+  reason: z.string().optional(),
+});
