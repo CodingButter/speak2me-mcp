@@ -65,3 +65,6 @@ export * from "./tools/project";
 
 // Re-export Claude tools
 export * from "./tools/claude";
+
+// Re-export Process tools
+export * from "./tools/process";

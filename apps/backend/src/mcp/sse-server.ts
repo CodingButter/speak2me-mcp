@@ -3,6 +3,7 @@ import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { Stream } from "@elysiajs/stream";
 import type { Context } from "elysia";
 import type { CoreOperations, SessionManager } from "@stt-mcp/core";
+import { ProcessManager } from "@stt-mcp/core";
 import {
   handleSpeak,
   handleListen,
@@ -15,6 +16,10 @@ import {
   handleProjectGet,
   handleProjectUnlink,
   handleClaudeChat,
+  handleProcessStart,
+  handleProcessStop,
+  handleProcessStatus,
+  handleProcessOutput,
 } from "@stt-mcp/core/mcp";
 import { prisma } from "@stt-mcp/database";
 import {
@@ -31,6 +36,10 @@ import {
   todoDeleteInputSchema,
   projectLinkInputSchema,
   claudeChatInputSchema,
+  processStartInputSchema,
+  processStopInputSchema,
+  processStatusInputSchema,
+  processOutputInputSchema,
 } from "@stt-mcp/shared";
 
 /**
@@ -40,8 +49,13 @@ import {
 export async function createSSEMCPServer(
   conversationId: string,
   core: CoreOperations,
-  sessionManager: SessionManager
+  sessionManager: SessionManager,
+  processManager?: ProcessManager
 ) {
+  // Create ProcessManager if not provided
+  if (!processManager) {
+    processManager = new ProcessManager("auto");
+  }
   const server = new Server(
     {
       name: "stt-mcp-voice",
@@ -240,6 +254,72 @@ export async function createSSEMCPServer(
             required: ["prompt"],
           },
         },
+        {
+          name: "process_start",
+          description: "Start a project process (dev server, build, test). Automatically uses commands from linked project context if no command is provided.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["dev", "build", "test", "custom"],
+                description: "Type of process to start",
+              },
+              command: {
+                type: "string",
+                description: "Command to run (optional if using project context commands)",
+              },
+              cwd: {
+                type: "string",
+                description: "Working directory (optional, defaults to project path)",
+              },
+            },
+            required: ["type"],
+          },
+        },
+        {
+          name: "process_stop",
+          description: "Stop a running process. If type is not provided, stops all processes for this conversation.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["dev", "build", "test", "custom"],
+                description: "Type of process to stop (optional)",
+              },
+            },
+          },
+        },
+        {
+          name: "process_status",
+          description: "Get status of running processes. If type is not provided, returns all processes for this conversation.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["dev", "build", "test", "custom"],
+                description: "Type of process to check (optional)",
+              },
+            },
+          },
+        },
+        {
+          name: "process_output",
+          description: "Get output from a running or completed process.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              type: {
+                type: "string",
+                enum: ["dev", "build", "test", "custom"],
+                description: "Type of process to get output from",
+              },
+            },
+            required: ["type"],
+          },
+        },
       ],
     };
   });
@@ -413,6 +493,78 @@ export async function createSSEMCPServer(
       if (request.params.name === "claude_chat") {
         const input = claudeChatInputSchema.parse(request.params.arguments);
         const result = await handleClaudeChat(input, { conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "process_start") {
+        const input = processStartInputSchema.parse(request.params.arguments);
+        const result = await handleProcessStart(input, {
+          conversationId,
+          prisma,
+          processManager,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "process_stop") {
+        const input = processStopInputSchema.parse(request.params.arguments);
+        const result = await handleProcessStop(input, {
+          conversationId,
+          prisma,
+          processManager,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "process_status") {
+        const input = processStatusInputSchema.parse(request.params.arguments);
+        const result = await handleProcessStatus(input, {
+          conversationId,
+          prisma,
+          processManager,
+        });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "process_output") {
+        const input = processOutputInputSchema.parse(request.params.arguments);
+        const result = await handleProcessOutput(input, {
+          conversationId,
+          prisma,
+          processManager,
+        });
 
         return {
           content: [

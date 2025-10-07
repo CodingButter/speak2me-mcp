@@ -22,6 +22,14 @@ import {
   projectLinkOutputSchema,
   claudeChatInputSchema,
   claudeChatOutputSchema,
+  processTypeSchema,
+  processStatusEnumSchema,
+  processInfoSchema,
+  processStartInputSchema,
+  processStopInputSchema,
+  processStatusInputSchema,
+  processOutputInputSchema,
+  processOutputSchema,
 } from "./schemas";
 
 // MCP Tool Types
@@ -49,6 +57,16 @@ export type ProjectLinkOutput = z.infer<typeof projectLinkOutputSchema>;
 // Claude Chat Tool Types
 export type ClaudeChatInput = z.infer<typeof claudeChatInputSchema>;
 export type ClaudeChatOutput = z.infer<typeof claudeChatOutputSchema>;
+
+// Process Control Tool Types
+export type ProcessType = z.infer<typeof processTypeSchema>;
+export type ProcessStatusEnum = z.infer<typeof processStatusEnumSchema>;
+export type ProcessInfo = z.infer<typeof processInfoSchema>;
+export type ProcessStartInput = z.infer<typeof processStartInputSchema>;
+export type ProcessStopInput = z.infer<typeof processStopInputSchema>;
+export type ProcessStatusInput = z.infer<typeof processStatusInputSchema>;
+export type ProcessOutputInput = z.infer<typeof processOutputInputSchema>;
+export type ProcessOutput = z.infer<typeof processOutputSchema>;
 
 // API Types
 export type ApiKeys = z.infer<typeof apiKeysSchema>;

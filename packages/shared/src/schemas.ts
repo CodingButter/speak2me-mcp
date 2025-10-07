@@ -247,3 +247,50 @@ export const claudeChatOutputSchema = z.object({
   error: z.string().optional(),
   projectPath: z.string().optional(),
 });
+
+// Process Control Tool Schemas
+
+export const processTypeSchema = z.enum(["dev", "build", "test", "custom"]);
+export const processStatusEnumSchema = z.enum(["starting", "running", "stopped", "failed"]);
+
+export const processInfoSchema = z.object({
+  id: z.string(),
+  conversationId: z.string(),
+  type: processTypeSchema,
+  command: z.string(),
+  cwd: z.string().optional(),
+  status: processStatusEnumSchema,
+  pid: z.number().optional(),
+  startedAt: z.number(),
+  stoppedAt: z.number().optional(),
+  exitCode: z.number().optional(),
+  output: z.array(z.string()),
+  errors: z.array(z.string()),
+});
+
+export const processStartInputSchema = z.object({
+  type: processTypeSchema,
+  command: z.string().optional(),
+  cwd: z.string().optional(),
+});
+
+export const processStopInputSchema = z.object({
+  type: processTypeSchema.optional(),
+});
+
+export const processStatusInputSchema = z.object({
+  type: processTypeSchema.optional(),
+});
+
+export const processOutputInputSchema = z.object({
+  type: processTypeSchema,
+});
+
+export const processOutputSchema = z.object({
+  ok: z.boolean(),
+  process: processInfoSchema.optional(),
+  processes: z.array(processInfoSchema).optional(),
+  output: z.array(z.string()).optional(),
+  errors: z.array(z.string()).optional(),
+  reason: z.string().optional(),
+});
