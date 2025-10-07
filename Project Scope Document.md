@@ -294,7 +294,274 @@ The result is a low-latency, streaming, "radio-operator" style interface for con
 
 ---
 
-## 8) API & Contract Details
+## 8) Distribution & Deployment Strategy
+
+### 8.1 Standalone Binary Compilation
+
+**Bun Standalone Binary**: The entire backend server (including embedded frontend) compiles to a **single executable binary** with no external dependencies.
+
+```bash
+# Compile server with embedded frontend
+bun build ./apps/backend/src/index.ts \
+  --compile \
+  --target=bun-linux-x64 \
+  --outfile speak2me-server
+
+# Result: Single ~50MB binary containing:
+# - Bun runtime
+# - All backend code
+# - Embedded React PWA (dist folder)
+# - All dependencies bundled
+```
+
+**Benefits**:
+- Zero dependencies required at runtime
+- No `node_modules` or package installation
+- Single file distribution
+- Fast startup (native binary)
+- Works offline after initial setup
+
+### 8.2 Distribution Modes
+
+#### Mode 1: Electron App (Windows/WSL Users)
+
+**Target Audience**: Windows users who want a native desktop app experience but need WSL for development tools (Claude CLI, dev servers, etc.)
+
+**Architecture**:
+```
+Windows (Electron UI)
+    ↓ HTTP/WebSocket
+WSL (speak2me-server binary)
+    ↓ Native spawning
+WSL (Claude CLI, dev tools)
+```
+
+**Installation Flow**:
+
+1. **User downloads**: `speak2me-setup.exe` (Windows installer)
+2. **Electron detects WSL**:
+   ```javascript
+   // Check if WSL installed
+   const hasWSL = await spawn('wsl', ['--status']).catch(() => false);
+   ```
+3. **WSL home detection**:
+   ```javascript
+   const wslHome = execSync('wsl echo ~').toString().trim();
+   // Returns: /home/username
+   ```
+4. **Binary installation**:
+   - Copy `speak2me-server` from Electron resources to WSL
+   - Install to: `~/.speak2me/bin/speak2me-server`
+   - Make executable: `chmod +x`
+   - Add to PATH via `~/.bashrc`
+5. **Systemd service setup** (optional, default ON):
+   - Create `~/.config/systemd/user/speak2me-server.service`
+   - Enable auto-start on WSL boot
+   - User-scoped (no sudo required)
+6. **First launch**:
+   - Start server: `wsl bash -l -c "speak2me-server"`
+   - Health check loop: `http://localhost:3000/health`
+   - Load Electron UI when server ready
+
+**Systemd Service Template**:
+```ini
+[Unit]
+Description=Speak2Me MCP Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.speak2me/bin/speak2me-server
+Restart=always
+RestartSec=10
+Environment="DATABASE_URL=file:%h/.speak2me/data/dev.db"
+
+[Install]
+WantedBy=default.target
+```
+
+**Update Strategy**:
+- Electron checks for updates on launch
+- Downloads new binary if available
+- Stops service → replaces binary → restarts service
+- User data (database, config) preserved in `~/.speak2me/data/`
+
+#### Mode 2: Standalone Linux Binary (Native Linux/Mac, Remote Servers)
+
+**Target Audience**:
+- Linux/Mac users who prefer terminal/browser interface
+- Self-hosters running on VPS/cloud
+- Power users who want lightweight deployment
+
+**Installation Flow**:
+
+1. **Download**: `speak2me-server` (single binary)
+2. **Install**:
+   ```bash
+   mkdir -p ~/.speak2me/bin
+   mv speak2me-server ~/.speak2me/bin/
+   chmod +x ~/.speak2me/bin/speak2me-server
+   echo 'export PATH="$HOME/.speak2me/bin:$PATH"' >> ~/.bashrc
+   ```
+3. **Optional: Systemd service** (same as Mode 1)
+4. **Run**:
+   ```bash
+   speak2me-server
+   # Server starts on http://localhost:3000
+   # Frontend accessible at http://localhost:3000
+   # API at http://localhost:3000/api/*
+   # MCP SSE at http://localhost:3000/sse/:conversationId
+   ```
+5. **Access**: Open browser to `http://localhost:3000` (or remote IP)
+
+**Remote Deployment**:
+```bash
+# SSH into VPS
+ssh user@server
+
+# Install
+curl -fsSL https://speak2me.dev/install.sh | bash
+
+# Configure systemd (system-wide)
+sudo systemctl enable speak2me-server
+sudo systemctl start speak2me-server
+
+# Access from anywhere
+https://speak2me.yourserver.com
+```
+
+### 8.3 Claude CLI Integration Architecture
+
+**Goal**: Eliminate the need for users to run Claude Code in a separate terminal. The server orchestrates Claude CLI, capturing responses and streaming them back via TTS.
+
+**Flow**:
+```
+User Voice Input (PWA)
+    ↓ STT
+Server receives transcript
+    ↓ Spawn subprocess
+claude -p "user message" --file CLAUDE.md --file context.ts
+    ↓ Capture stdout/stderr
+Claude Code responds (text + tool calls)
+    ↓ Parse response
+Server processes tool outputs
+    ↓ TTS
+User hears response (PWA)
+```
+
+**Implementation** (`packages/core/src/services/claude-cli.ts`):
+
+```typescript
+interface ClaudeCliConfig {
+  projectPath: string;
+  contextFiles?: string[];  // --file flags
+  model?: string;           // claude-sonnet-4, etc.
+  timeout?: number;
+}
+
+class ClaudeCliService {
+  async executePrompt(
+    prompt: string,
+    config: ClaudeCliConfig
+  ): Promise<ClaudeResponse> {
+    // Build command
+    const args = [
+      'bash', '-l', '-c',
+      `cd ${config.projectPath} && claude -p "${prompt}"`,
+    ];
+
+    if (config.contextFiles) {
+      args.push(...config.contextFiles.map(f => `--file "${f}"`));
+    }
+
+    // Spawn in WSL (if Windows) or native
+    const process = spawn('wsl', args);
+
+    // Capture output
+    const stdout = [];
+    process.stdout.on('data', chunk => stdout.push(chunk));
+
+    await process;
+
+    return parseClaudeResponse(stdout.join(''));
+  }
+
+  async streamPrompt(
+    prompt: string,
+    config: ClaudeCliConfig
+  ): AsyncGenerator<ClaudeChunk> {
+    // Real-time streaming for live TTS
+  }
+}
+```
+
+**Context Injection**:
+- Auto-include project's `CLAUDE.md`
+- Include files mentioned in recent conversation
+- Include files with recent errors (from logs)
+- Include files from current TODOs
+
+**Smart Features**:
+- **Hands-free development**: User never leaves PWA
+- **Full context retention**: All tool outputs in conversation history
+- **Process monitoring**: See logs, CPU, RAM in real-time dashboard
+- **Error detection**: Parse stderr, auto-create TODOs for failures
+- **Voice-driven coding**: True conversational development workflow
+
+### 8.4 Process Management
+
+**Dev Server Control** (via `project_link` tool):
+```typescript
+// User: "start the dev server"
+// MCP tool stores: devCommand="bun run dev"
+processManager.start('dev', projectContext.devCommand);
+
+// Real-time stdout/stderr streaming to PWA via WebSocket
+// CPU/RAM monitoring per process
+// Auto-restart on crash
+
+// User: "stop the dev server"
+processManager.stop('dev');
+```
+
+**Process Types**:
+- **dev**: Development server (hot-reload, etc.)
+- **build**: Production build
+- **test**: Test runner
+- **claude**: Claude CLI subprocess
+
+**Monitoring**:
+- Per-process CPU/RAM usage
+- stdout/stderr logs streamed to PWA
+- Exit codes tracked
+- Auto-restart policies
+
+### 8.5 Data Storage & Portability
+
+**User Data Location** (all modes):
+```
+~/.speak2me/
+├── bin/
+│   └── speak2me-server (binary)
+├── data/
+│   ├── dev.db (SQLite database)
+│   └── audio/ (saved audio assets)
+└── config.json (user preferences)
+```
+
+**Portability**:
+- Backup: `tar -czf backup.tar.gz ~/.speak2me/data/`
+- Restore: `tar -xzf backup.tar.gz -C ~/`
+- Database migrations handled automatically on version updates
+
+**Multi-Device**:
+- Same binary works on any Linux x64 system
+- Data directory portable between machines
+- Remote server accessible from any device with browser
+
+---
+
+## 9) API & Contract Details
 
 ### 8.1 MCP Connection URL
 
