@@ -62,3 +62,6 @@ export * from "./tools/todo";
 
 // Re-export Project tools
 export * from "./tools/project";
+
+// Re-export Claude tools
+export * from "./tools/claude";

@@ -231,3 +231,19 @@ export const projectLinkOutputSchema = z.object({
   projectContext: projectContextSchema.optional(),
   reason: z.string().optional(),
 });
+
+// Claude Chat Tool Schemas
+
+export const claudeChatInputSchema = z.object({
+  prompt: z.string().min(1),
+  contextFiles: z.array(z.string()).optional(),
+  useProjectContext: z.boolean().optional().default(true),
+});
+
+export const claudeChatOutputSchema = z.object({
+  ok: z.boolean(),
+  output: z.string().optional(),
+  exitCode: z.number().optional(),
+  error: z.string().optional(),
+  projectPath: z.string().optional(),
+});

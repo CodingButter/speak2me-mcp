@@ -20,6 +20,8 @@ import {
   projectLinkInputSchema,
   projectContextSchema,
   projectLinkOutputSchema,
+  claudeChatInputSchema,
+  claudeChatOutputSchema,
 } from "./schemas";
 
 // MCP Tool Types
@@ -43,6 +45,10 @@ export type Priority = z.infer<typeof prioritySchema>;
 export type ProjectLinkInput = z.infer<typeof projectLinkInputSchema>;
 export type ProjectContext = z.infer<typeof projectContextSchema>;
 export type ProjectLinkOutput = z.infer<typeof projectLinkOutputSchema>;
+
+// Claude Chat Tool Types
+export type ClaudeChatInput = z.infer<typeof claudeChatInputSchema>;
+export type ClaudeChatOutput = z.infer<typeof claudeChatOutputSchema>;
 
 // API Types
 export type ApiKeys = z.infer<typeof apiKeysSchema>;

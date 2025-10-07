@@ -14,6 +14,7 @@ import {
   handleProjectLink,
   handleProjectGet,
   handleProjectUnlink,
+  handleClaudeChat,
 } from "@stt-mcp/core/mcp";
 import { prisma } from "@stt-mcp/database";
 import {
@@ -29,6 +30,7 @@ import {
   todoArchiveInputSchema,
   todoDeleteInputSchema,
   projectLinkInputSchema,
+  claudeChatInputSchema,
 } from "@stt-mcp/shared";
 
 /**
@@ -215,6 +217,29 @@ export async function createSSEMCPServer(
             properties: {},
           },
         },
+        {
+          name: "claude_chat",
+          description: "Run Claude CLI and capture its output. Automatically uses linked project context if available. This allows the server to orchestrate Claude Code instead of requiring the user to run it separately.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              prompt: {
+                type: "string",
+                description: "The prompt to send to Claude CLI",
+              },
+              contextFiles: {
+                type: "array",
+                items: { type: "string" },
+                description: "Optional array of file paths to include as context",
+              },
+              useProjectContext: {
+                type: "boolean",
+                description: "Whether to automatically use linked project's directory as working directory (default: true)",
+              },
+            },
+            required: ["prompt"],
+          },
+        },
       ],
     };
   });
@@ -374,6 +399,20 @@ export async function createSSEMCPServer(
 
       if (request.params.name === "project_unlink") {
         const result = await handleProjectUnlink({ conversationId, prisma });
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result),
+            },
+          ],
+        };
+      }
+
+      if (request.params.name === "claude_chat") {
+        const input = claudeChatInputSchema.parse(request.params.arguments);
+        const result = await handleClaudeChat(input, { conversationId, prisma });
 
         return {
           content: [
