@@ -95,8 +95,11 @@ export class WebPlatform implements IPlatform {
   readonly apiClient: IApiClient;
 
   private hotkeyListeners = new Map<string, () => void>();
+  private audioElement: HTMLAudioElement | null = null;
+  private baseUrl: string;
 
   constructor(backendUrl: string = "http://localhost:3000") {
+    this.baseUrl = backendUrl;
     this.apiClient = new WebApiClient(backendUrl);
   }
 
@@ -127,6 +130,81 @@ export class WebPlatform implements IPlatform {
           new Notification(title, { body });
         }
       });
+    }
+  }
+
+  // Audio Storage (Web sends to backend)
+  async saveAudioFile(
+    filename: string,
+    audioBlob: Blob,
+    conversationId: string
+  ): Promise<string> {
+    // Upload audio to backend
+    const formData = new FormData();
+    formData.append("audio", audioBlob, filename);
+    formData.append("conversationId", conversationId);
+
+    const response = await fetch(`${this.baseUrl}/api/audio/upload`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to upload audio: ${response.statusText}`);
+    }
+
+    const { url } = await response.json();
+    return url;
+  }
+
+  getAudioUrl(filename: string, conversationId: string): string {
+    // Return backend URL for audio file
+    return `${this.baseUrl}/api/audio/${conversationId}/${filename}`;
+  }
+
+  // Audio Playback (HTML5 Audio)
+  async playAudio(audioUrl: string): Promise<void> {
+    // Stop current audio if playing
+    await this.stopAudio();
+
+    // Create new audio element
+    this.audioElement = new Audio(audioUrl);
+
+    return new Promise((resolve, reject) => {
+      if (!this.audioElement) {
+        reject(new Error("Failed to create audio element"));
+        return;
+      }
+
+      this.audioElement.onended = () => {
+        resolve();
+      };
+
+      this.audioElement.onerror = () => {
+        reject(new Error("Audio playback error"));
+      };
+
+      this.audioElement.play().catch(reject);
+    });
+  }
+
+  async stopAudio(): Promise<void> {
+    if (this.audioElement) {
+      this.audioElement.pause();
+      this.audioElement.currentTime = 0;
+      this.audioElement = null;
+    }
+  }
+
+  async pauseAudio(): Promise<void> {
+    if (this.audioElement) {
+      this.audioElement.pause();
+    }
+  }
+
+  async resumeAudio(): Promise<void> {
+    if (this.audioElement) {
+      await this.audioElement.play();
     }
   }
 }

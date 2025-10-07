@@ -14,10 +14,21 @@ export interface IPlatform {
   registerHotkey(key: string, callback: () => void): Promise<void>;
   unregisterHotkey(key: string): Promise<void>;
 
-  // File system operations (Electron only)
+  // File system operations
   readFile?(path: string): Promise<string>;
   writeFile?(path: string, content: string): Promise<void>;
   pickDirectory?(): Promise<string | null>;
+
+  // Audio storage
+  saveAudioFile(filename: string, audioBlob: Blob, conversationId: string): Promise<string>;
+  getAudioUrl(filename: string, conversationId: string): string;
+  deleteAudioFile?(filename: string, conversationId: string): Promise<void>;
+
+  // Audio playback
+  playAudio(audioUrl: string): Promise<void>;
+  stopAudio(): Promise<void>;
+  pauseAudio(): Promise<void>;
+  resumeAudio(): Promise<void>;
 
   // Notifications
   showNotification(title: string, body: string): void;

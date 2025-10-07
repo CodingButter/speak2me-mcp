@@ -68,31 +68,131 @@ export class ElectronPlatform implements IPlatform {
   }
 
   async registerHotkey(key: string, callback: () => void): Promise<void> {
-    // TODO: Use Electron globalShortcut API via IPC
-    // window.electronAPI.registerGlobalShortcut(key, callback);
+    // Use Electron globalShortcut API via IPC (works even when app not focused)
+    // @ts-ignore - electronAPI injected by preload script
+    if (window.electronAPI?.registerGlobalShortcut) {
+      // @ts-ignore
+      await window.electronAPI.registerGlobalShortcut(key, callback);
+    }
   }
 
   async unregisterHotkey(key: string): Promise<void> {
-    // TODO: Use Electron globalShortcut API via IPC
+    // @ts-ignore
+    if (window.electronAPI?.unregisterGlobalShortcut) {
+      // @ts-ignore
+      await window.electronAPI.unregisterGlobalShortcut(key);
+    }
   }
 
   async readFile(path: string): Promise<string> {
-    // TODO: Call Electron IPC
-    // return window.electronAPI.readFile(path);
+    // @ts-ignore
+    if (window.electronAPI?.readFile) {
+      // @ts-ignore
+      return await window.electronAPI.readFile(path);
+    }
     return "";
   }
 
   async writeFile(path: string, content: string): Promise<void> {
-    // TODO: Call Electron IPC
+    // @ts-ignore
+    if (window.electronAPI?.writeFile) {
+      // @ts-ignore
+      await window.electronAPI.writeFile(path, content);
+    }
   }
 
   async pickDirectory(): Promise<string | null> {
-    // TODO: Call Electron dialog API via IPC
+    // @ts-ignore
+    if (window.electronAPI?.pickDirectory) {
+      // @ts-ignore
+      return await window.electronAPI.pickDirectory();
+    }
     return null;
   }
 
   showNotification(title: string, body: string): void {
-    // TODO: Use Electron Notification API
-    new Notification(title, { body });
+    // Electron has native notification support
+    // @ts-ignore
+    if (window.electronAPI?.showNotification) {
+      // @ts-ignore
+      window.electronAPI.showNotification(title, body);
+    } else {
+      new Notification(title, { body });
+    }
+  }
+
+  // Audio Storage (Electron saves to disk directly via Node.js fs)
+  async saveAudioFile(
+    filename: string,
+    audioBlob: Blob,
+    conversationId: string
+  ): Promise<string> {
+    // Convert blob to buffer
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // @ts-ignore
+    if (window.electronAPI?.saveAudioFile) {
+      // @ts-ignore
+      return await window.electronAPI.saveAudioFile(filename, buffer, conversationId);
+    }
+
+    throw new Error("Electron API not available");
+  }
+
+  getAudioUrl(filename: string, conversationId: string): string {
+    // Return file:// URL for local audio file
+    // @ts-ignore
+    if (window.electronAPI?.getAudioPath) {
+      // @ts-ignore
+      const path = window.electronAPI.getAudioPath(conversationId, filename);
+      return `file://${path}`;
+    }
+    return "";
+  }
+
+  async deleteAudioFile(filename: string, conversationId: string): Promise<void> {
+    // @ts-ignore
+    if (window.electronAPI?.deleteAudioFile) {
+      // @ts-ignore
+      await window.electronAPI.deleteAudioFile(conversationId, filename);
+    }
+  }
+
+  // Audio Playback (Electron can use native audio APIs)
+  async playAudio(audioUrl: string): Promise<void> {
+    // @ts-ignore
+    if (window.electronAPI?.playAudio) {
+      // @ts-ignore
+      await window.electronAPI.playAudio(audioUrl);
+    } else {
+      // Fallback to HTML5 Audio
+      const audio = new Audio(audioUrl);
+      await audio.play();
+    }
+  }
+
+  async stopAudio(): Promise<void> {
+    // @ts-ignore
+    if (window.electronAPI?.stopAudio) {
+      // @ts-ignore
+      await window.electronAPI.stopAudio();
+    }
+  }
+
+  async pauseAudio(): Promise<void> {
+    // @ts-ignore
+    if (window.electronAPI?.pauseAudio) {
+      // @ts-ignore
+      await window.electronAPI.pauseAudio();
+    }
+  }
+
+  async resumeAudio(): Promise<void> {
+    // @ts-ignore
+    if (window.electronAPI?.resumeAudio) {
+      // @ts-ignore
+      await window.electronAPI.resumeAudio();
+    }
   }
 }
