@@ -23,6 +23,7 @@ describe("PrismaStorage", () => {
     await prisma.message.deleteMany();
     await prisma.conversation.deleteMany();
     await prisma.apiKey.deleteMany();
+    await prisma.settings.deleteMany();
   });
 
   describe("Conversations", () => {
