@@ -1,0 +1,22 @@
+{
+  "name": "@stt-mcp/platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./web": "./src/web.ts",
+    "./electron": "./src/electron.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stt-mcp/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@stt-mcp/config": "workspace:*",
+    "typescript": "^5.4.5"
+  }
+}
