@@ -7,5 +7,7 @@
   "background_color": "#0f0f14",
   "theme_color": "#00d4ff",
   "orientation": "portrait-primary",
-  "icons": []
+  "icons": [],
+  "__TODO": "Add PWA icon assets - Project Scope: §3.1 (PWA Features)",
+  "__TODO_details": "Need to create and add app icons in multiple sizes: 72x72, 96x96, 128x128, 144x144, 152x152, 192x192, 384x384, 512x512. Use logo.svg as source. Generate with PWA Asset Generator or manually. Add to public/ folder and list in icons array. Ensure high-contrast mode icons for accessibility. labels: enhancement, pwa"
 }

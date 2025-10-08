@@ -16,6 +16,71 @@ interface SettingsProps {
  * Settings Modal Component
  * Responsive: Full screen on xs/sm, modal on md+
  */
+// TODO: Expand Settings panel with all Project Scope features
+// Project Scope: §5.2.2 (Settings Panel specification)
+// Missing settings categories to add:
+//
+// 1. Audio Capture Settings:
+//    - Input device picker (use navigator.mediaDevices.enumerateDevices())
+//    - Gain control slider
+//    - Noise suppression toggle (browser API)
+//
+// 2. VAD & Chunking (expand existing section):
+//    - minSpeechMs slider (ignore blips < this duration)
+//    - minSilenceMs slider (silence before splitting)
+//    - maxUtteranceMs slider (max chunk length)
+//    - "Trim long silences" toggle
+//    - "Max chunk length (ms)" input
+//
+// 3. STT Settings:
+//    - Provider: Gemini (future: Whisper, Deepgram)
+//    - Model selector (gemini-1.5-flash, gemini-1.5-pro)
+//    - Language/locale dropdown
+//    - Encoding: Opus/WebM/PCM radio buttons
+//    - "Send partials" toggle (advanced)
+//
+// 4. TTS Settings:
+//    - Provider: ElevenLabs (future: Azure, Google)
+//    - Voice selector (fetch from /api/voices)
+//    - Model selector (eleven_flash_v2, eleven_turbo_v2_5)
+//    - Speaking rate/pitch bias sliders
+//    - "Stream playback" toggle
+//    - "Autoplay" toggle
+//
+// 5. SSML Enhancer Settings:
+//    - Model selector (gpt-4o-mini, gpt-4)
+//    - "Enable prosody" toggle
+//    - "Enable emphasis" toggle
+//    - "Enable phonemes" toggle
+//    - Formality slider: casual ↔ neutral ↔ formal
+//    - "Max breaks per 100 words" input
+//
+// 6. Interaction Settings:
+//    - Default mode: Auto / Manual / PTT radio buttons
+//    - "Auto-send in auto mode" toggle
+//    - PTT keybinding input (works only when window focused)
+//
+// 7. Privacy & Storage:
+//    - "Keep conversation history" toggle
+//    - Retention days input
+//    - "Export conversations" button (JSON/MD)
+//
+// 8. Advanced Settings:
+//    - Logging level dropdown (error, warn, info, debug)
+//    - "Metrics panel" toggle (show/hide diagnostics)
+//    - Backend URL input (for self-hosted deployments)
+//
+// Implementation:
+// - Use tabs or accordion for organization
+// - Persist settings to backend via /api/settings
+// - Show validation errors inline
+// - Add "Reset to defaults" button
+// - Add "Test microphone" and "Test speaker" buttons
+//
+// assignees: codingbutter
+// labels: enhancement, frontend
+// milestone: MVP Launch
+
 export function Settings({ isOpen, onClose, apiKeys, onSaveApiKeys, vadThreshold, onSaveVadThreshold }: SettingsProps) {
   const [keys, setKeys] = useState<ApiKeys>(apiKeys);
   const [showKeys, setShowKeys] = useState({

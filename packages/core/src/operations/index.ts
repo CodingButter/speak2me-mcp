@@ -108,7 +108,27 @@ export class CoreOperations {
     audioData: ArrayBuffer,
     apiKeys: ApiKeys
   ): Promise<Message> {
-    // TODO: Implement VAD + chunking + Gemini STT
+    // TODO: Implement complete audio processing pipeline
+    // Project Scope: §10 (Audio Handling & Cost Controls)
+    // Steps:
+    // 1. Apply VAD to detect speech segments (energy-based threshold)
+    // 2. Trim leading/trailing silence from each segment
+    // 3. Remove internal silences ≥ minSilenceMs (Project Scope §10)
+    // 4. Split into chunks if > maxUtteranceMs (12-20s recommended)
+    // 5. Add 100-200ms overlap between chunks to avoid word cuts
+    // 6. Apply do-not-send rule: discard sub-threshold blips and segments < minSpeechMs
+    // 7. Encode chunks (Opus/WebM at 16-24kHz mono)
+    // 8. Call Gemini STT on each chunk
+    // 9. Aggregate transcripts and timing info
+    // 10. Track metrics: audioSecSent, chunks, latencyMs
+    // 11. Verify 30% cost reduction from silence trimming (Project Scope §2.2.7)
+    // Related services:
+    // - packages/core/src/services/stt.ts (Gemini STT integration)
+    // - Frontend: apps/frontend/src/services/audioProcessor.ts (VAD logic)
+    // assignees: codingbutter
+    // labels: enhancement, voice
+    // milestone: MVP Launch
+
     // For now, create placeholder message
     const message = await this.createMessage({
       conversationId,

@@ -12,6 +12,23 @@ interface ChatViewProps {
  * Displays message history with audio playback
  * Responsive: stacks on small screens, adapts text size
  */
+// TODO: Add conversation export functionality
+// Project Scope: §3.1 (Export conversations - JSON, Markdown)
+// Add prop: onExport?: (format: "json" | "markdown") => void
+// UI: Add toolbar above messages with export buttons
+// Implementation:
+// - JSON export: Serialize full conversation with all metadata
+// - Markdown export: Format as readable chat transcript
+// - Include audio URLs (or embed as base64 if offline export)
+// - Save to file using download link or File System API
+// labels: enhancement, frontend
+
+// TODO: Add copy message functionality
+// Allow copying individual messages or entire conversation
+// UI: Add copy button to each message bubble
+// Use navigator.clipboard.writeText()
+// labels: enhancement, frontend
+
 export function ChatView({ messages, onPlayAudio }: ChatViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +107,17 @@ export function ChatView({ messages, onPlayAudio }: ChatViewProps) {
                   <span>Play audio</span>
                 </button>
               )}
+
+              {/* TODO: Add metadata toggle for message details */}
+              {/* Project Scope: §5.2.1 (Chat View - metadata toggle) */}
+              {/* Show expandable section with: */}
+              {/* - SSML used (if assistant message) */}
+              {/* - Metrics: ttfbMs, totalMs, audioSecSent, chunks, latencyMs */}
+              {/* - Timestamp (full format) */}
+              {/* - Audio duration */}
+              {/* - Cost estimate (based on audio-seconds) */}
+              {/* Implementation: Add <Collapsible> or details/summary element */}
+              {/* labels: enhancement, frontend */}
             </div>
 
             {/* Timestamp */}

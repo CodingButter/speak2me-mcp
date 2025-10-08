@@ -367,7 +367,21 @@ export async function createSSEMCPServer(
           throw new Error("Gemini API key not configured. Please set it in settings.");
         }
 
-        // TODO: Get audio data from PWA or buffer
+        // TODO: Wire up audio data from PWA frontend
+        // Project Scope: §5.1.2 (listen tool), §7.2.2 (data flow)
+        // Currently returns empty ArrayBuffer - need to:
+        // - Accept audio data via WebSocket or HTTP POST from PWA
+        // - Store audio in session buffer during recording
+        // - Retrieve buffer when listen tool is invoked
+        // - Clear buffer after processing
+        // Implementation options:
+        //   1. WebSocket: PWA streams chunks → server buffers → listen tool retrieves
+        //   2. HTTP POST: PWA sends complete audio → server processes → listen tool retrieves
+        //   3. SSE bidirectional: Use SSE + POST hybrid (recommended for MCP compatibility)
+        // Related: Implement /api/audio/upload endpoint for PWA to send audio
+        // assignees: codingbutter
+        // labels: enhancement, backend, voice
+        // milestone: MVP Launch
         const audioData = new ArrayBuffer(0);
 
         const result = await handleListen(input, { apiKeys, conversationId, audioData });

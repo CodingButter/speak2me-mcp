@@ -174,11 +174,31 @@ export function AudioControls({
       </div>
 
       {/* VU Meter placeholder */}
+      {/* TODO: Replace with real-time waveform visualization */}
+      {/* Project Scope: §5.2.1 (Audio Controls - waveform/VU meter) */}
+      {/* Implementation: */}
+      {/* 1. Use Web Audio API AnalyserNode to get frequency/time data */}
+      {/* 2. Render waveform using Canvas or SVG */}
+      {/* 3. Options: */}
+      {/*    - Simple VU meter (current volume bar) */}
+      {/*    - Live waveform (scrolling time-domain visualization) */}
+      {/*    - Frequency bars (spectrum analyzer style) */}
+      {/* 4. Update at ~60fps using requestAnimationFrame */}
+      {/* 5. Color-code by volume threshold (green = speech, gray = silence) */}
+      {/* Consider library: wavesurfer.js or custom Canvas implementation */}
+      {/* labels: enhancement, frontend, voice */}
       {isRecording && (
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <div className="h-full bg-primary animate-pulse" style={{ width: "60%" }} />
         </div>
       )}
+
+      {/* TODO: Add PTT keybinding display */}
+      {/* Project Scope: §5.2.1 (PTT keybinding configuration) */}
+      {/* Show current PTT key (e.g., "Space") below PTT button when mode === "ptt" */}
+      {/* Make it configurable via Settings */}
+      {/* Note: PTT only works when PWA window is focused (browser limitation) */}
+      {/* labels: enhancement, frontend */}
     </div>
   );
 }

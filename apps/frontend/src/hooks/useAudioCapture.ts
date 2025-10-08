@@ -116,8 +116,33 @@ export function useAudioCapture(config: AudioCaptureConfig) {
 
     const processed = await processAudio(combinedAudio, cfg.sampleRate, processorConfig);
 
-    // For now, just return the audio blob
-    // In full implementation, this would send to STT service
+    // TODO: Integrate with backend STT API
+    // Project Scope: §5.1.2 (listen tool), §7.2.2 (PWA audio upload)
+    // Implementation:
+    // 1. Create API client method: POST /api/audio/upload
+    //    - Send processed.audioBlob to backend
+    //    - Include conversationId in URL or body
+    //    - Include metadata: mode, vadThreshold, minSilenceMs, etc.
+    // 2. Backend stores audio in session buffer or processes immediately
+    // 3. If mode === "auto":
+    //    - Backend automatically calls handleListen → Gemini STT
+    //    - Returns transcript in response
+    //    - Invoke config.onTranscript with transcript
+    // 4. If mode === "manual" or "ptt":
+    //    - Backend buffers audio, waits for user to click Send
+    //    - PWA calls POST /api/conversation/:id/send-audio
+    //    - Backend processes buffered audio → STT
+    //    - Returns transcript
+    // 5. Handle errors:
+    //    - Network errors: Retry with exponential backoff
+    //    - STT errors: Display clear error to user
+    //    - Audio format errors: Log and inform user
+    // 6. Track metrics:
+    //    - Upload time, STT latency, total e2e time
+    //    - Audio size reduction from silence trimming
+    // assignees: codingbutter
+    // labels: enhancement, frontend, voice
+    // milestone: MVP Launch
     config.onTranscript?.("", processed);
 
     // Clear buffers

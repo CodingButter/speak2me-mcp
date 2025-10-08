@@ -1,0 +1,48 @@
+name: "TODO to Issue"
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for accurate diff
+
+      - name: TODO to Issue
+        uses: alstr/todo-to-issue-action@v5
+        with:
+          # Insert issue URLs back into the code
+          INSERT_ISSUE_URLS: true
+
+          # Automatically assign issues to the author of the TODO
+          AUTO_ASSIGN: true
+
+          # Close issues when TODOs are removed
+          CLOSE_ISSUES: true
+
+          # Additional identifiers to scan for (besides TODO)
+          IDENTIFIERS: '[{"name": "TODO", "labels": ["todo"]}, {"name": "FIXME", "labels": ["bug", "fixme"]}, {"name": "HACK", "labels": ["tech-debt", "hack"]}, {"name": "BUG", "labels": "bug"}]'
+
+          # Project-specific label prefix
+          LABEL: "todo"
+
+          # Auto-add projects label
+          AUTO_P: true
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

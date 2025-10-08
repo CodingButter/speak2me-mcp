@@ -17,6 +17,67 @@ interface LayoutProps {
  * - md (512px+): Sidebar visible, collapsible
  * - lg (768px+): Sidebar always visible
  */
+
+// TODO: Create Diagnostics Panel component
+// Project Scope: §5.2.3 (Diagnostics Panel)
+// Should be accessible via Settings or main menu
+// Features to include:
+// 1. Real-time metrics charts:
+//    - End-to-end latency (line chart over time)
+//    - Audio-seconds sent (bar chart per session)
+//    - Chunk count (bar chart)
+//    - Error rate (percentage, color-coded)
+// 2. Logs viewer:
+//    - Last 100 logs with filter by category:
+//      audio, STT, TTS, SSML, MCP, backend
+//    - Log level filter: debug, info, warn, error
+//    - Search/filter by text
+//    - Copy logs to clipboard
+//    - Export logs as JSON
+// 3. Connection status:
+//    - MCP sessions active (count, list of IDs)
+//    - WebSocket/SSE health (connected/disconnected/reconnecting)
+//    - Backend API reachability (ping test button)
+//    - API keys status (configured/missing per service)
+// 4. Device tests:
+//    - Mic check: Record 3s → play back → verify works
+//    - Speaker check: Play test tone → user confirms hearing
+//    - Device list: Show available input/output devices
+//    - VAD test: Live meter showing speech detection
+// 5. Performance info:
+//    - Browser info (user agent, WebRTC support)
+//    - Audio API support (getUserMedia, MediaRecorder, VAD)
+//    - Network info (online/offline, connection type)
+// Implementation:
+// - Use Chart.js or Recharts for charts
+// - Virtual scrolling for logs (react-window)
+// - WebSocket for real-time metrics updates
+// - Store metrics in IndexedDB for persistence
+// File: Create apps/frontend/src/components/Diagnostics.tsx
+// assignees: codingbutter
+// labels: enhancement, frontend
+// milestone: MVP Launch
+
+// TODO: Add multi-session conversation switcher to sidebar
+// Project Scope: §5.2.1 (Main Layout - Conversation List)
+// Currently sidebar shows placeholder content
+// Should display:
+// - List of all active MCP sessions (conversations)
+// - Each item shows:
+//   - Session name/ID
+//   - Last message timestamp
+//   - Unread indicator (if new messages since last view)
+//   - Active indicator (currently selected)
+// - Click to switch between conversations
+// - "New Conversation" button (for manual testing)
+// - Search/filter conversations
+// Implementation:
+// - Fetch from /api/conversations
+// - Subscribe to WebSocket for real-time updates
+// - Persist selected conversation in localStorage
+// - Show loading state while fetching
+// labels: enhancement, frontend
+
 export function Layout({ sidebar, main, controls }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

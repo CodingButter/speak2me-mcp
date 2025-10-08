@@ -17,6 +17,27 @@ import { handleSSEConnection } from "./mcp/sse-server";
 const sessionManager = new SessionManager();
 const coreOps = new CoreOperations(storage);
 
+// TODO: Add WebSocket support for real-time PWA updates
+// Project Scope: §7.2 (Data Flows), §5.2.1 (PWA real-time updates)
+// Need to implement WebSocket endpoint for:
+// - Broadcasting new messages to PWA when MCP client calls speak/listen
+// - Pushing conversation updates (new sessions, status changes)
+// - Real-time process output streaming
+// - Audio processing status updates (transcribing, generating speech)
+// Implementation: Use @elysiajs/websocket plugin
+// Route: /ws/:conversationId or /ws (global channel with room support)
+// assignees: codingbutter
+// labels: enhancement, backend
+// milestone: MVP Launch
+
+// TODO: Add static file serving for audio assets
+// Project Scope: §7.2.1 (Audio asset storage)
+// Need to serve saved audio files for PWA playback
+// Route: /assets/audio/:conversationId/:filename
+// Storage location: ./data/audio/ or configurable via env
+// Security: Verify conversationId ownership before serving
+// labels: enhancement, backend, voice
+
 const app = new Elysia()
   .use(cors())
   .decorate("core", coreOps)
@@ -35,6 +56,10 @@ const app = new Elysia()
       .use(systemMetricsRoutes)
       .use(filesystemRoutes)
       .use(claudeRoutes)
+      // TODO: Add /api/audio routes
+      // - POST /api/audio/upload - Accept audio from PWA for STT
+      // - GET /api/audio/:conversationId/:messageId - Serve audio assets
+      // labels: enhancement, backend, voice
   )
   .listen(3001);
 
