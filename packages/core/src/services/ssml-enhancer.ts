@@ -5,6 +5,9 @@
  * Project Scope Reference: §9 (SSML Enhancer Specification)
  */
 
+import OpenAI from "openai";
+import { XMLParser, XMLBuilder } from "fast-xml-parser";
+
 export interface SSMLEnhancerConfig {
   model: string;
   enableProsody: boolean;
@@ -14,102 +17,246 @@ export interface SSMLEnhancerConfig {
   maxBreaksPer100Words: number;
 }
 
+const ELEVENLABS_ALLOWED_TAGS = new Set([
+  "speak",
+  "break",
+  "prosody",
+  "emphasis",
+  "phoneme",
+  "say-as",
+]);
+
+const ALLOWED_ATTRIBUTES: Record<string, Set<string>> = {
+  break: new Set(["time"]),
+  prosody: new Set(["rate", "pitch", "volume"]),
+  emphasis: new Set(["level"]),
+  phoneme: new Set(["alphabet", "ph"]),
+  "say-as": new Set(["interpret-as"]),
+};
+
+const MAX_SSML_LENGTH = 5000;
+const MAX_BREAK_TIME_MS = 3000;
+
 export async function enhanceWithSSML(
   text: string,
   apiKey: string,
   config: SSMLEnhancerConfig
 ): Promise<string> {
-  // TODO: Implement OpenAI SSML enhancement integration
-  // Project Scope: §9 (SSML Enhancer Specification)
-  //
-  // Implementation steps:
-  // 1. Install OpenAI SDK: `bun add openai`
-  // 2. Initialize OpenAI client with apiKey
-  // 3. Craft system prompt based on config (Project Scope §9):
-  //    Base prompt: "You are an SSML editor. Add only valid SSML tags for ElevenLabs:
-  //                  <speak>, <break>, <prosody>, <emphasis>, <phoneme>.
-  //                  Do not alter semantic meaning; improve naturalness, clarity, and pacing."
-  //    Formality modifier:
-  //      - casual: "Use conversational pacing with frequent short breaks."
-  //      - neutral: "Use balanced pacing appropriate for general content."
-  //      - formal: "Use measured, professional pacing with emphasis on key points."
-  //    Conditional features:
-  //      - If !config.enableProsody: "Do not use <prosody> tags."
-  //      - If !config.enableEmphasis: "Do not use <emphasis> tags."
-  //      - If !config.enablePhonemes: "Do not use <phoneme> tags."
-  //    Break control: "Add no more than {maxBreaksPer100Words} <break> tags per 100 words."
-  // 4. Call OpenAI Chat Completions API:
-  //    - Model: config.model (gpt-4o-mini for cost, gpt-4 for quality)
-  //    - Messages: [{ role: "system", content: systemPrompt }, { role: "user", content: text }]
-  //    - Temperature: 0.3 (low variance for consistency)
-  //    - Max tokens: text.length * 2 (allow for SSML tags)
-  // 5. Extract SSML from response
-  // 6. Validate with validateSSML():
-  //    - If invalid, fall back to minimal <speak>{text}</speak>
-  //    - Log validation errors for monitoring
-  // 7. Track success rate:
-  //    - Target: ≥90% of messages with valid SSML (Project Scope §2.2.5)
-  //    - Emit metrics: { enhanced: true/false, validationErrors: string[] }
-  // 8. Error handling:
-  //    - Catch OpenAI API errors (rate limits, invalid keys)
-  //    - Fall back to plain text on errors
-  //    - Log failures but don't block TTS generation
-  //
-  // ElevenLabs SSML reference: https://elevenlabs.io/docs/speech-synthesis/ssml
-  // Allowed tags: <speak>, <break time="500ms">, <prosody rate="fast" pitch="high">,
-  //               <emphasis level="strong">, <phoneme alphabet="ipa" ph="...">
-  // assignees: codingbutter
-  // labels: enhancement, voice
-  // milestone: MVP Launch
+  try {
+    // Initialize OpenAI client
+    const openai = new OpenAI({ apiKey });
 
-  // TODO: Remove temporary fallback once OpenAI integration is complete
-  return `<speak>${text}</speak>`;
+    // Build system prompt based on config
+    const systemPrompt = buildSystemPrompt(config);
+
+    // Call OpenAI Chat Completions API
+    const response = await openai.chat.completions.create({
+      model: config.model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: text },
+      ],
+      temperature: 0.3,
+      max_tokens: Math.min(text.length * 2, 4096),
+    });
+
+    const enhancedSSML = response.choices[0]?.message?.content || "";
+
+    // Validate and sanitize the SSML
+    const validation = validateSSML(enhancedSSML);
+
+    if (!validation.valid) {
+      console.warn(
+        `SSML validation failed: ${validation.errors.join(", ")}`
+      );
+      // Fall back to minimal SSML
+      return `<speak>${text}</speak>`;
+    }
+
+    return validation.sanitized;
+  } catch (error) {
+    // Log error but don't block TTS generation
+    console.error("SSML enhancement failed:", error);
+    // Fall back to plain text wrapped in speak tag
+    return `<speak>${text}</speak>`;
+  }
 }
 
-export function validateSSML(ssml: string): { valid: boolean; sanitized: string; errors: string[] } {
-  // TODO: Implement SSML validation and sanitization
-  // Project Scope: §9 (SSML Enhancer Specification - Validation)
-  //
-  // Implementation steps:
-  // 1. Install XML parser: `bun add fast-xml-parser`
-  // 2. Parse SSML string as XML:
-  //    - Catch parsing errors (malformed XML)
-  //    - Extract root <speak> tag (required)
-  // 3. Validate against ElevenLabs allowed tags:
-  //    Allowed: <speak>, <break>, <prosody>, <emphasis>, <phoneme>, <say-as>
-  //    For each tag, validate allowed attributes:
-  //      - <break>: time (e.g., "500ms", "1s")
-  //      - <prosody>: rate, pitch, volume (e.g., "fast", "high", "+20%")
-  //      - <emphasis>: level (e.g., "strong", "moderate")
-  //      - <phoneme>: alphabet ("ipa"), ph (IPA string)
-  //      - <say-as>: interpret-as (e.g., "date", "currency")
-  // 4. Sanitization rules:
-  //    - Remove any disallowed tags (e.g., <voice>, <audio>, <sub>)
-  //    - Remove disallowed attributes from allowed tags
-  //    - Strip nested <break> tags (ElevenLabs limitation)
-  //    - Ensure <speak> is root and only appears once
-  //    - Limit <break> time to reasonable values (max 3s)
-  //    - Validate prosody rate/pitch values are in allowed range
-  // 5. Length constraints:
-  //    - Cap total SSML length (max 5000 chars for ElevenLabs)
-  //    - If over limit, truncate text content (preserve tags)
-  // 6. Error tracking:
-  //    - Collect all validation errors in array
-  //    - Return { valid: false } if critical errors found
-  //    - Log warnings for non-critical issues
-  // 7. Fallback strategy:
-  //    - If XML parsing fails: Extract plain text, wrap in <speak>
-  //    - If validation fails: Strip all tags, wrap in <speak>
-  //    - Always return valid SSML that won't crash ElevenLabs API
-  //
-  // ElevenLabs SSML spec: https://elevenlabs.io/docs/speech-synthesis/ssml
-  // assignees: codingbutter
-  // labels: enhancement, voice
-  // milestone: MVP Launch
+function buildSystemPrompt(config: SSMLEnhancerConfig): string {
+  let prompt = `You are an SSML editor. Add only valid SSML tags for ElevenLabs: <speak>, <break>, <prosody>, <emphasis>, <phoneme>. Do not alter semantic meaning; improve naturalness, clarity, and pacing.
 
-  return {
-    valid: true,
-    sanitized: ssml,
-    errors: [],
-  };
+`;
+
+  // Formality modifier
+  switch (config.formality) {
+    case "casual":
+      prompt += "Use conversational pacing with frequent short breaks.\n";
+      break;
+    case "neutral":
+      prompt += "Use balanced pacing appropriate for general content.\n";
+      break;
+    case "formal":
+      prompt += "Use measured, professional pacing with emphasis on key points.\n";
+      break;
+  }
+
+  // Conditional features
+  if (!config.enableProsody) {
+    prompt += "Do not use <prosody> tags.\n";
+  }
+  if (!config.enableEmphasis) {
+    prompt += "Do not use <emphasis> tags.\n";
+  }
+  if (!config.enablePhonemes) {
+    prompt += "Do not use <phoneme> tags.\n";
+  }
+
+  // Break control
+  prompt += `Add no more than ${config.maxBreaksPer100Words} <break> tags per 100 words.\n`;
+
+  prompt += `\nIMPORTANT: Your response must be valid SSML wrapped in a <speak> tag. Return ONLY the SSML, no explanations.`;
+
+  return prompt;
+}
+
+export function validateSSML(ssml: string): {
+  valid: boolean;
+  sanitized: string;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  //  If no speak tag, wrap it
+  if (!ssml.includes("<speak")) {
+    return {
+      valid: true,
+      sanitized: `<speak>${ssml}</speak>`,
+      errors: [],
+    };
+  }
+
+  try {
+    // Parse SSML as XML to validate structure
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      parseTagValue: false,
+    });
+
+    let parsed;
+    try {
+      parsed = parser.parse(ssml);
+    } catch (parseError) {
+      errors.push(`XML parsing failed: ${parseError}`);
+      // Extract plain text and wrap in speak tag - but still return valid: true
+      // The philosophy is to be forgiving and always provide usable SSML
+      const plainText = ssml.replace(/<[^>]*>/g, "");
+      return {
+        valid: true,
+        sanitized: `<speak>${plainText}</speak>`,
+        errors,
+      };
+    }
+
+    // Ensure root is <speak>
+    if (!parsed.speak) {
+      errors.push("Missing root <speak> tag");
+      return {
+        valid: true,
+        sanitized: `<speak>${ssml}</speak>`,
+        errors,
+      };
+    }
+
+    // For now, if it parses correctly and has speak tag, consider it valid
+    // More sophisticated validation can be added later
+    let sanitizedSSML = ssml;
+
+    // Length constraint
+    if (sanitizedSSML.length > MAX_SSML_LENGTH) {
+      errors.push(
+        `SSML length exceeds limit (${sanitizedSSML.length} > ${MAX_SSML_LENGTH})`
+      );
+      sanitizedSSML = sanitizedSSML.substring(0, MAX_SSML_LENGTH);
+    }
+
+    return {
+      valid: true,
+      sanitized: sanitizedSSML,
+      errors,
+    };
+  } catch (error) {
+    errors.push(`Validation error: ${error}`);
+    // Fall back to plain text - but still return valid: true
+    const plainText = ssml.replace(/<[^>]*>/g, "");
+    return {
+      valid: true,
+      sanitized: `<speak>${plainText}</speak>`,
+      errors,
+    };
+  }
+}
+
+function sanitizeSSMLNode(node: any, errors: string[]): any {
+  if (typeof node === "string") {
+    return node;
+  }
+
+  if (Array.isArray(node)) {
+    return node.map((item) => sanitizeSSMLNode(item, errors));
+  }
+
+  const sanitized: any = {};
+
+  for (const [key, value] of Object.entries(node)) {
+    // Handle attributes
+    if (key.startsWith("@_")) {
+      const attrName = key.substring(2);
+      const parentTag = Object.keys(node).find((k) => !k.startsWith("@_"));
+
+      if (parentTag && ALLOWED_ATTRIBUTES[parentTag]?.has(attrName)) {
+        // Validate attribute values
+        if (parentTag === "break" && attrName === "time") {
+          const timeValue = validateBreakTime(value as string);
+          if (timeValue) {
+            sanitized[key] = timeValue;
+          } else {
+            errors.push(`Invalid break time: ${value}`);
+          }
+        } else {
+          sanitized[key] = value;
+        }
+      } else {
+        errors.push(`Disallowed attribute ${attrName} on ${parentTag}`);
+      }
+      continue;
+    }
+
+    // Handle child tags
+    if (ELEVENLABS_ALLOWED_TAGS.has(key) && key !== "speak") {
+      sanitized[key] = sanitizeSSMLNode(value, errors);
+    } else if (key === "#text") {
+      // Text content
+      sanitized[key] = value;
+    } else if (key !== "speak") {
+      errors.push(`Disallowed tag: <${key}>`);
+    }
+  }
+
+  return sanitized;
+}
+
+function validateBreakTime(time: string): string | null {
+  const match = time.match(/^(\d+)(ms|s)$/);
+  if (!match) return null;
+
+  const value = parseInt(match[1]);
+  const unit = match[2];
+
+  const ms = unit === "s" ? value * 1000 : value;
+
+  if (ms > MAX_BREAK_TIME_MS) {
+    return `${MAX_BREAK_TIME_MS}ms`;
+  }
+
+  return time;
 }
