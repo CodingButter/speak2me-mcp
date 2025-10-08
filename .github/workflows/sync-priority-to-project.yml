@@ -1,0 +1,105 @@
+name: "Sync Priority Labels to Project Field"
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sync-priorities:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Sync priority labels to project field
+        run: |
+          # Project and field IDs
+          PROJECT_ID="PVT_kwHOAJyrsc4BFFPI"
+          PRIORITY_FIELD_ID="PVTSSF_lAHOAJyrsc4BFFPIzg2hb8A"
+          P0_OPTION="79628723"
+          P1_OPTION="0a877460"
+          P2_OPTION="da944a9c"
+
+          echo "Syncing priority labels to project Priority field..."
+
+          # Get all open issues in the project with their labels
+          ITEMS=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      content {
+                        ... on Issue {
+                          number
+                          labels(first: 20) {
+                            nodes {
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          echo "$ITEMS" | jq -r '.data.node.items.nodes[] | select(.content.number != null) | @json' | while read -r item; do
+            ISSUE_NUMBER=$(echo "$item" | jq -r '.content.number')
+            ITEM_ID=$(echo "$item" | jq -r '.id')
+
+            # Get priority label from issue
+            PRIORITY_LABEL=$(echo "$item" | jq -r '.content.labels.nodes[].name | select(startswith("priority:"))')
+
+            # Determine which priority option to set
+            case "$PRIORITY_LABEL" in
+              "priority: P0")
+                PRIORITY_OPTION="$P0_OPTION"
+                PRIORITY_NAME="P0"
+                ;;
+              "priority: P1")
+                PRIORITY_OPTION="$P1_OPTION"
+                PRIORITY_NAME="P1"
+                ;;
+              "priority: P2")
+                PRIORITY_OPTION="$P2_OPTION"
+                PRIORITY_NAME="P2"
+                ;;
+              *)
+                # No priority label found, skip
+                echo "  Issue #$ISSUE_NUMBER - No priority label, skipping"
+                continue
+                ;;
+            esac
+
+            echo "  Issue #$ISSUE_NUMBER - Setting to $PRIORITY_NAME"
+
+            # Update project field
+            gh api graphql -f query='
+              mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
+                updateProjectV2ItemFieldValue(
+                  input: {
+                    projectId: $projectId
+                    itemId: $itemId
+                    fieldId: $fieldId
+                    value: {singleSelectOptionId: $value}
+                  }
+                ) {
+                  projectV2Item {
+                    id
+                  }
+                }
+              }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$PRIORITY_FIELD_ID" -f value="$PRIORITY_OPTION" > /dev/null 2>&1
+          done
+
+          echo "✅ Priority sync complete!"
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

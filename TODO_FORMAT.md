@@ -41,6 +41,8 @@ This project uses [alstr/todo-to-issue-action](https://github.com/alstr/todo-to-
 
 Use these standard labels for categorization:
 
+### Category Labels
+
 - `!bug` - Something isn't working
 - `!enhancement` - New feature or request
 - `!documentation` - Documentation improvements
@@ -55,6 +57,22 @@ Use these standard labels for categorization:
 - `!database` - Database/storage layer
 - `!deployment` - Deployment and DevOps
 - `!pwa` - PWA-specific features
+
+### Priority Labels
+**Always include a priority label for new TODOs:**
+
+- `priority: P0` - **Critical** - Blocking MVP launch (core voice features)
+- `priority: P1` - **High** - Important for MVP quality
+- `priority: P2` - **Medium** - Nice to have enhancements
+
+**Example:**
+```typescript
+// TODO: Implement ElevenLabs TTS streaming API
+// labels: enhancement, voice, priority: P0
+// milestone: MVP Launch
+```
+
+**Note:** Priority labels automatically sync to the GitHub Project Priority field via scheduled workflow.
 
 ## Best Practices
 
