@@ -4,71 +4,124 @@
  * Project Scope Reference: §5.1.1, §7.2.1
  */
 
+import { ElevenLabsClient } from "elevenlabs";
+
 export interface TTSConfig {
   voiceId?: string;
   model: string;
   stream: boolean;
+  outputFormat?: string;
+  optimizeStreamingLatency?: number;
 }
+
+export interface TTSMetrics {
+  ttfbMs: number;
+  totalMs: number;
+  audioLengthSeconds?: number;
+  characterCount: number;
+}
+
+export interface TTSResult {
+  audioData: ArrayBuffer;
+  metrics: TTSMetrics;
+}
+
+const DEFAULT_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"; // Default "Rachel" voice
+const DEFAULT_MODEL = "eleven_flash_v2"; // Optimized for speed
+const DEFAULT_OUTPUT_FORMAT = "mp3_44100_128";
+const DEFAULT_STREAMING_LATENCY = 3; // Balance between speed and quality (0-4)
 
 export async function textToSpeech(
   text: string,
   apiKey: string,
   config: TTSConfig
-): Promise<{ audioData: ArrayBuffer; metrics: { ttfbMs: number; totalMs: number } }> {
-  // TODO: Implement ElevenLabs TTS streaming API integration
-  // Project Scope: §5.1.1 (speak tool), §6 (performance requirements), §7.2.1 (audio storage)
-  //
-  // Implementation steps:
-  // 1. Install ElevenLabs SDK: `bun add elevenlabs`
-  // 2. Initialize client with apiKey
-  // 3. Call text-to-speech endpoint with:
-  //    - voice_id: config.voiceId or default from settings
-  //    - model_id: config.model (default: eleven_flash_v2 for speed, eleven_turbo_v2_5 for quality)
-  //    - text: SSML-enriched text from SSML enhancer
-  //    - optimize_streaming_latency: 3-4 for low latency (Project Scope §2.2.4: TTFB < 500ms)
-  //    - output_format: mp3_44100_128 or pcm_24000 (configurable)
-  // 4. Stream audio chunks if config.stream === true:
-  //    - Start timer for TTFB (time to first byte)
-  //    - Emit 'first_audio' event on first chunk
-  //    - Accumulate chunks into ArrayBuffer
-  //    - Emit progress events for PWA UI
-  // 5. Save complete audio to filesystem:
-  //    - Path: ./data/audio/:conversationId/:messageId.mp3
-  //    - Return URL: /assets/audio/:conversationId/:messageId.mp3
-  //    - Ensure directory exists (mkdir -p)
-  // 6. Track metrics:
-  //    - ttfbMs: Time from request to first audio chunk
-  //    - totalMs: Total generation time
-  //    - audioLengthSeconds: Duration of generated audio
-  //    - compressionRatio: Original text length vs audio data size
-  // 7. Error handling (Project Scope §11):
-  //    - Exponential backoff on rate limits (429)
-  //    - Circuit breaker after N consecutive failures
-  //    - Fallback to cached/default voice on API errors
-  //    - Clear error messages for invalid API keys
-  // 8. Return format:
-  //    - audioData: ArrayBuffer of complete audio
-  //    - audioUrl: URL for PWA to fetch/play audio
-  //    - metrics: { ttfbMs, totalMs, audioLengthSeconds }
-  //
-  // Reference: https://elevenlabs.io/docs/api-reference/text-to-speech-stream
-  // assignees: codingbutter
-  // labels: enhancement, voice
-  // milestone: MVP Launch
+): Promise<TTSResult> {
+  const startTime = performance.now();
+  let firstByteTime: number | null = null;
 
-  // TODO: Add audio asset storage utility
-  // Create helper function: saveAudioAsset(conversationId, messageId, audioData, format)
-  // - Ensure ./data/audio directory structure exists
-  // - Save audio file with proper naming convention
-  // - Return public URL for frontend access
-  // - Handle cleanup for old messages (based on retention policy in Settings)
-  // labels: enhancement, backend
+  try {
+    // Initialize ElevenLabs client
+    const client = new ElevenLabsClient({ apiKey });
 
-  return {
-    audioData: new ArrayBuffer(0),
-    metrics: {
-      ttfbMs: 0,
-      totalMs: 0,
-    },
-  };
+    // Use provided config or defaults
+    const voiceId = config.voiceId || DEFAULT_VOICE_ID;
+    const model = config.model || DEFAULT_MODEL;
+    const outputFormat = config.outputFormat || DEFAULT_OUTPUT_FORMAT;
+    const optimizeStreamingLatency =
+      config.optimizeStreamingLatency ?? DEFAULT_STREAMING_LATENCY;
+
+    // Call text-to-speech stream API
+    // Note: Using convertAsStream (older SDK version) instead of stream
+    const audioStream = await client.textToSpeech.convertAsStream(voiceId, {
+      text,
+      modelId: model,
+      outputFormat: outputFormat as any,
+      optimizeStreamingLatency,
+    });
+
+    // Accumulate audio chunks from ReadableStream
+    const chunks: Uint8Array[] = [];
+    let totalBytes = 0;
+
+    // Get a reader from the stream
+    const reader = audioStream.getReader();
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        // Track time to first byte
+        if (firstByteTime === null) {
+          firstByteTime = performance.now();
+        }
+
+        chunks.push(value);
+        totalBytes += value.length;
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    // Combine chunks into single ArrayBuffer
+    const audioData = new ArrayBuffer(totalBytes);
+    const uint8View = new Uint8Array(audioData);
+    let offset = 0;
+    for (const chunk of chunks) {
+      uint8View.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    const endTime = performance.now();
+
+    // Calculate metrics
+    const ttfbMs = firstByteTime ? firstByteTime - startTime : 0;
+    const totalMs = endTime - startTime;
+
+    // Estimate audio length (rough approximation)
+    // MP3 @ 128kbps = 16000 bytes/second
+    const audioLengthSeconds =
+      outputFormat.includes("128") ? totalBytes / 16000 : undefined;
+
+    const metrics: TTSMetrics = {
+      ttfbMs: Math.round(ttfbMs),
+      totalMs: Math.round(totalMs),
+      audioLengthSeconds,
+      characterCount: text.length,
+    };
+
+    return {
+      audioData,
+      metrics,
+    };
+  } catch (error) {
+    // Log error for debugging
+    console.error("TTS generation failed:", error);
+
+    // Rethrow with context
+    throw new Error(
+      `ElevenLabs TTS failed: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
 }
