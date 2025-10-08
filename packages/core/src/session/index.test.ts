@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "bun:test";
 import { SessionManager } from "./index";
-import type { ApiKeys } from "@stt-mcp/shared";
+import type { ApiKeys } from "@s2m-pac/shared";
 
 describe("SessionManager", () => {
   let sessionManager: SessionManager;

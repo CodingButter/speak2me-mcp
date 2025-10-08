@@ -1,5 +1,5 @@
 {
-  "name": "@stt-mcp/shared",
+  "name": "@s2m-pac/shared",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,6 +10,8 @@
     "./types": "./src/types.ts"
   },
   "scripts": {
+    "dev": "bun build.ts --watch",
+    "build": "bun build.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit"
@@ -18,7 +20,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@stt-mcp/config": "workspace:*",
+    "@s2m-pac/config": "workspace:*",
     "typescript": "^5.4.5"
   }
 }

@@ -1,5 +1,5 @@
-import type { Conversation, Message, Settings, ApiKeys } from "@stt-mcp/shared";
-import { settingsSchema } from "@stt-mcp/shared";
+import type { Conversation, Message, Settings, ApiKeys } from "@s2m-pac/shared";
+import { settingsSchema } from "@s2m-pac/shared";
 import { prisma } from "./client";
 
 /**
@@ -17,6 +17,7 @@ export class PrismaStorage {
         id: conversation.id,
         name: conversation.name,
         messageCount: conversation.messageCount || 0,
+        projectId: conversation.projectId,
       },
     });
 
@@ -26,6 +27,7 @@ export class PrismaStorage {
       createdAt: created.createdAt.getTime(),
       updatedAt: created.updatedAt.getTime(),
       messageCount: created.messageCount,
+      projectId: created.projectId || undefined,
     };
   }
 
@@ -56,6 +58,23 @@ export class PrismaStorage {
       createdAt: c.createdAt.getTime(),
       updatedAt: c.updatedAt.getTime(),
       messageCount: c.messageCount,
+      projectId: c.projectId || undefined,
+    }));
+  }
+
+  async getConversationsByProject(projectId: string): Promise<Conversation[]> {
+    const conversations = await prisma.conversation.findMany({
+      where: { projectId },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return conversations.map((c) => ({
+      id: c.id,
+      name: c.name || undefined,
+      createdAt: c.createdAt.getTime(),
+      updatedAt: c.updatedAt.getTime(),
+      messageCount: c.messageCount,
+      projectId: c.projectId || undefined,
     }));
   }
 
@@ -71,6 +90,78 @@ export class PrismaStorage {
 
   async deleteConversation(id: string): Promise<void> {
     await prisma.conversation.delete({
+      where: { id },
+    });
+  }
+
+  // Projects
+  async getAllProjects() {
+    const projects = await prisma.project.findMany({
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      description: p.description || undefined,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+    }));
+  }
+
+  async getProject(id: string) {
+    const project = await prisma.project.findUnique({
+      where: { id },
+    });
+
+    if (!project) return null;
+
+    return {
+      id: project.id,
+      name: project.name,
+      description: project.description || undefined,
+      createdAt: project.createdAt.toISOString(),
+      updatedAt: project.updatedAt.toISOString(),
+    };
+  }
+
+  async createProject(data: { name: string; description?: string }) {
+    const created = await prisma.project.create({
+      data: {
+        name: data.name,
+        description: data.description,
+      },
+    });
+
+    return {
+      id: created.id,
+      name: created.name,
+      description: created.description || undefined,
+      createdAt: created.createdAt.toISOString(),
+      updatedAt: created.updatedAt.toISOString(),
+    };
+  }
+
+  async updateProject(id: string, updates: { name?: string; description?: string }) {
+    const updated = await prisma.project.update({
+      where: { id },
+      data: {
+        name: updates.name,
+        description: updates.description,
+      },
+    });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      description: updated.description || undefined,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
+  async deleteProject(id: string) {
+    await prisma.project.delete({
       where: { id },
     });
   }
@@ -220,12 +311,26 @@ export class PrismaStorage {
       where: { conversationId },
     });
 
-    if (!apiKey) return null;
+    // Fall back to environment variables if DB keys not found
+    const envFallback: ApiKeys = {
+      openai: process.env.OPENAI_API_KEY,
+      elevenlabs: process.env.ELEVENLABS_API_KEY,
+      gemini: process.env.GEMINI_API_KEY,
+      anthropic: process.env.ANTHROPIC_API_KEY,
+    };
 
+    if (!apiKey) {
+      // Return environment variables if any are set
+      const hasAnyEnvKey = Object.values(envFallback).some(v => v);
+      return hasAnyEnvKey ? envFallback : null;
+    }
+
+    // Merge DB keys with environment fallback (DB keys take precedence)
     return {
-      openai: apiKey.openai || undefined,
-      elevenlabs: apiKey.elevenlabs || undefined,
-      gemini: apiKey.gemini || undefined,
+      openai: apiKey.openai || envFallback.openai || undefined,
+      elevenlabs: apiKey.elevenlabs || envFallback.elevenlabs || undefined,
+      gemini: apiKey.gemini || envFallback.gemini || undefined,
+      anthropic: apiKey.anthropic || envFallback.anthropic || undefined,
     };
   }
 
@@ -255,6 +360,119 @@ export class PrismaStorage {
         conversationId,
         ...config,
       },
+    });
+  }
+
+  // Project Context
+  async createProjectContext(data: {
+    conversationId: string;
+    projectPath: string;
+    projectName: string;
+    claudeMdPath?: string;
+    devCommand?: string;
+    buildCommand?: string;
+    testCommand?: string;
+  }) {
+    return await prisma.projectContext.create({
+      data,
+    });
+  }
+
+  async getProjectContext(conversationId: string) {
+    return await prisma.projectContext.findUnique({
+      where: { conversationId },
+    });
+  }
+
+  async updateProjectContext(
+    conversationId: string,
+    updates: {
+      projectPath?: string;
+      projectName?: string;
+      claudeMdPath?: string;
+      devCommand?: string;
+      buildCommand?: string;
+      testCommand?: string;
+    }
+  ) {
+    return await prisma.projectContext.update({
+      where: { conversationId },
+      data: {
+        ...updates,
+        lastAccessedAt: new Date(),
+      },
+    });
+  }
+
+  async deleteProjectContext(conversationId: string) {
+    await prisma.projectContext.delete({
+      where: { conversationId },
+    });
+  }
+
+  // Claude Configuration
+  async getClaudeConfig(conversationId: string) {
+    const config = await prisma.claudeConfig.findUnique({
+      where: { conversationId },
+    });
+
+    if (!config) return null;
+
+    return {
+      id: config.id,
+      conversationId: config.conversationId,
+      systemPromptTemplate: config.systemPromptTemplate,
+      voiceEnabled: config.voiceEnabled,
+      voiceDirectives: config.voiceDirectives,
+      model: config.model,
+      maxTurns: config.maxTurns,
+      permissionMode: config.permissionMode as "default" | "acceptEdits" | "bypassPermissions" | "plan",
+      allowedTools: config.allowedTools ? JSON.parse(config.allowedTools) : null,
+      disallowedTools: config.disallowedTools ? JSON.parse(config.disallowedTools) : null,
+      mcpServers: config.mcpServers ? JSON.parse(config.mcpServers) : null,
+      customInstructions: config.customInstructions,
+      templateVars: config.templateVars ? JSON.parse(config.templateVars) : null,
+      createdAt: config.createdAt.getTime(),
+      updatedAt: config.updatedAt.getTime(),
+    };
+  }
+
+  async setClaudeConfig(conversationId: string, input: any) {
+    return await prisma.claudeConfig.upsert({
+      where: { conversationId },
+      update: {
+        systemPromptTemplate: input.systemPromptTemplate,
+        voiceEnabled: input.voiceEnabled,
+        voiceDirectives: input.voiceDirectives,
+        model: input.model,
+        maxTurns: input.maxTurns,
+        permissionMode: input.permissionMode,
+        allowedTools: input.allowedTools ? JSON.stringify(input.allowedTools) : null,
+        disallowedTools: input.disallowedTools ? JSON.stringify(input.disallowedTools) : null,
+        mcpServers: input.mcpServers ? JSON.stringify(input.mcpServers) : null,
+        customInstructions: input.customInstructions,
+        templateVars: input.templateVars ? JSON.stringify(input.templateVars) : null,
+      },
+      create: {
+        conversationId,
+        systemPromptTemplate: input.systemPromptTemplate,
+        voiceEnabled: input.voiceEnabled ?? false,
+        voiceDirectives: input.voiceDirectives,
+        model: input.model ?? "claude-sonnet-4-5-20250929",
+        maxTurns: input.maxTurns ?? 10,
+        permissionMode: input.permissionMode ?? "acceptEdits",
+        allowedTools: input.allowedTools ? JSON.stringify(input.allowedTools) : null,
+        disallowedTools: input.disallowedTools ? JSON.stringify(input.disallowedTools) : null,
+        mcpServers: input.mcpServers ? JSON.stringify(input.mcpServers) : null,
+        customInstructions: input.customInstructions,
+        templateVars: input.templateVars ? JSON.stringify(input.templateVars) : null,
+      },
+    });
+  }
+
+  async deleteClaudeConfig(conversationId: string) {
+    await prisma.claudeConfig.delete({
+      where: { conversationId },
     });
   }
 }

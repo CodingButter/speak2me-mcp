@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { MicVAD, utils } from "@ricky0123/vad-web";
+import { MicVAD } from "@ricky0123/vad-web";
 import {
   processAudio,
   PreRollBuffer,
@@ -250,7 +250,7 @@ export function useAudioCapture(config: AudioCaptureConfig) {
             setState((prev) => ({ ...prev, isSpeaking: false }));
           }
         },
-        onFrameProcessed: (probs: { isSpeech: number; notSpeech: number }, audio: Float32Array) => {
+        onFrameProcessed: (_probs: { isSpeech: number; notSpeech: number }, audio: Float32Array) => {
           // Calculate and report volume for UI
           const volume = calculateRMS(audio);
           setState((prev) => ({ ...prev, currentVolume: volume }));

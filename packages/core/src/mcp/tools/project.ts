@@ -1,4 +1,4 @@
-import type { ProjectLinkInput, ProjectLinkOutput } from "@stt-mcp/shared";
+import type { ProjectLinkInput, ProjectLinkOutput } from "@s2m-pac/shared";
 import { ProjectContextService } from "../../services/project-context";
 import type { PrismaClient } from "@prisma/client";
 

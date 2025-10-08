@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Speak2Me Component Library</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-primary: #0f0f14;
+        --bg-secondary: #1a1a24;
+        --bg-tertiary: #252534;
+        --bg-hover: #2d2d3d;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0c0;
+        --text-tertiary: #808090;
+        --accent-blue: #00d4ff;
+        --accent-purple: #8b5cf6;
+        --accent-success: #10b981;
+        --accent-warning: #f59e0b;
+        --accent-error: #ef4444;
+        --border-color: #2d2d3d;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        padding: 40px 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .header h1 {
+        font-size: 48px;
+        margin-bottom: 12px;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header p {
+        font-size: 18px;
+        color: var(--text-secondary);
+      }
+
+      .section {
+        margin-bottom: 80px;
+      }
+
+      .section-title {
+        font-size: 32px;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid var(--border-color);
+      }
+
+      .component-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .component-showcase {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+      }
+
+      .component-label {
+        font-size: 14px;
+        color: var(--text-tertiary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 16px;
+        font-weight: 600;
+      }
+
+      /* Status Badge */
+      .status-badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-badge.running {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--accent-success);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      /* Mini Gauge */
+      .mini-gauge {
+        width: 60px;
+        height: 60px;
+        position: relative;
+        display: inline-block;
+      }
+
+      .mini-gauge svg {
+        transform: rotate(-90deg);
+      }
+
+      .mini-gauge-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      /* Buttons */
+      .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+        display: inline-block;
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+
+      .btn-primary {
+        background: var(--accent-blue);
+        color: var(--bg-primary);
+      }
+
+      .btn-primary:hover {
+        background: #00b8e6;
+        transform: translateY(-1px);
+      }
+
+      .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-hover);
+      }
+
+      .icon-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 8px;
+      }
+
+      .icon-btn:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      /* Cards */
+      .card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      /* Stat Box */
+      .stat-box {
+        text-align: center;
+        padding: 20px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+      }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--accent-blue);
+        margin-bottom: 8px;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* Priority Badges */
+      .priority-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: inline-block;
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+
+      .priority-high {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--accent-error);
+      }
+
+      .priority-medium {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--accent-warning);
+      }
+
+      .priority-low {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--accent-success);
+      }
+
+      /* Tags */
+      .tag {
+        padding: 3px 8px;
+        background: rgba(139, 92, 246, 0.2);
+        border-radius: 4px;
+        font-size: 11px;
+        color: var(--accent-purple);
+        display: inline-block;
+        margin-right: 4px;
+        margin-bottom: 4px;
+      }
+
+      /* Task Card */
+      .task-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .task-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin: 8px 0;
+      }
+
+      .task-description {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        line-height: 1.4;
+      }
+
+      /* Form Elements */
+      .form-input,
+      .form-textarea {
+        width: 100%;
+        padding: 10px 14px;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        color: var(--text-primary);
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      /* Audio Player */
+      .audio-player {
+        padding: 12px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .play-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--accent-blue);
+        border: none;
+        color: var(--bg-primary);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+
+      .play-btn:hover {
+        transform: scale(1.1);
+      }
+
+      .waveform {
+        flex: 1;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .waveform-bar {
+        flex: 1;
+        background: var(--accent-blue);
+        border-radius: 2px;
+        opacity: 0.3;
+      }
+
+      .audio-duration {
+        font-size: 12px;
+        color: var(--text-tertiary);
+      }
+
+      /* Volume Meter */
+      .volume-meter {
+        width: 200px;
+        height: 40px;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .volume-level {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          var(--accent-success),
+          var(--accent-warning),
+          var(--accent-error)
+        );
+        width: 45%;
+        transition: width 0.1s;
+      }
+
+      /* Mode Selector */
+      .mode-selector {
+        display: inline-flex;
+        gap: 0;
+        background: var(--bg-tertiary);
+        border-radius: 6px;
+        padding: 4px;
+      }
+
+      .mode-btn {
+        padding: 8px 16px;
+        border: none;
+        background: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .mode-btn.active {
+        background: var(--accent-blue);
+        color: var(--bg-primary);
+      }
+
+      /* Mic Button */
+      .mic-button {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--accent-blue);
+        border: none;
+        color: var(--bg-primary);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .mic-button:hover {
+        transform: scale(1.1);
+      }
+
+      .mic-button.recording {
+        background: var(--accent-error);
+        animation: pulse 1.5s infinite;
+      }
+
+      /* Circular Gauge */
+      .circular-gauge {
+        text-align: center;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+      }
+
+      .gauge-svg {
+        width: 120px;
+        height: 120px;
+      }
+
+      .gauge-label {
+        margin-top: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .gauge-value {
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+
+      /* Log Line */
+      .log-line {
+        padding: 6px 0;
+        display: flex;
+        gap: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+      }
+
+      .log-time {
+        color: var(--text-tertiary);
+        min-width: 80px;
+      }
+
+      .log-level {
+        min-width: 60px;
+        font-weight: 600;
+      }
+
+      .log-level.info {
+        color: var(--accent-blue);
+      }
+      .log-level.warn {
+        color: var(--accent-warning);
+      }
+      .log-level.error {
+        color: var(--accent-error);
+      }
+      .log-level.debug {
+        color: var(--accent-purple);
+      }
+
+      .log-message {
+        color: var(--text-secondary);
+        flex: 1;
+      }
+
+      /* Activity Item */
+      .activity-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
+
+      .activity-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(0, 212, 255, 0.2);
+        color: var(--accent-blue);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      .activity-content {
+        flex: 1;
+      }
+
+      .activity-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+      }
+
+      .activity-time {
+        font-size: 12px;
+        color: var(--text-tertiary);
+        margin-top: 4px;
+      }
+
+      /* Toast */
+      .toast {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow);
+        margin-bottom: 12px;
+      }
+
+      .toast.success {
+        border-left: 3px solid var(--accent-success);
+      }
+      .toast.error {
+        border-left: 3px solid var(--accent-error);
+      }
+      .toast.warning {
+        border-left: 3px solid var(--accent-warning);
+      }
+
+      .toast-icon {
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .toast.success .toast-icon {
+        color: var(--accent-success);
+      }
+      .toast.error .toast-icon {
+        color: var(--accent-error);
+      }
+      .toast.warning .toast-icon {
+        color: var(--accent-warning);
+      }
+
+      /* Nav Item */
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-secondary);
+        font-size: 14px;
+        border-radius: 6px;
+        margin-bottom: 4px;
+      }
+
+      .nav-item:hover {
+        background: var(--bg-hover);
+        color: var(--text-primary);
+      }
+
+      .nav-item.active {
+        background: rgba(0, 212, 255, 0.1);
+        color: var(--accent-blue);
+        border-left: 3px solid var(--accent-blue);
+      }
+
+      .nav-icon {
+        min-width: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* Message Bubble */
+      .message {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--accent-purple);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        flex-shrink: 0;
+        color: var(--bg-primary);
+      }
+
+      .message.user .message-avatar {
+        background: var(--accent-blue);
+      }
+
+      .message-content {
+        flex: 1;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .message-author {
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .message-time {
+        font-size: 12px;
+        color: var(--text-tertiary);
+      }
+
+      .message-text {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+      }
+
+      .examples {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Speak2Me Component Library</h1>
+        <p>A comprehensive showcase of all UI components used in the dashboard</p>
+      </div>
+
+      <!-- Status & Indicators -->
+      <div class="section">
+        <h2 class="section-title">Status & Indicators</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Status Badges</div>
+            <div class="examples">
+              <span class="status-badge running">
+                <span class="status-dot"></span>
+                Running
+              </span>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Status Dot</div>
+            <div class="examples">
+              <span class="status-dot" style="background: var(--accent-success)"></span>
+              <span class="status-dot" style="background: var(--accent-warning)"></span>
+              <span class="status-dot" style="background: var(--accent-error)"></span>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Mini Gauge</div>
+            <div class="mini-gauge">
+              <svg width="60" height="60">
+                <circle
+                  cx="30"
+                  cy="30"
+                  r="24"
+                  fill="none"
+                  stroke="var(--bg-tertiary)"
+                  stroke-width="6"
+                />
+                <circle
+                  cx="30"
+                  cy="30"
+                  r="24"
+                  fill="none"
+                  stroke="var(--accent-blue)"
+                  stroke-width="6"
+                  stroke-dasharray="150"
+                  stroke-dashoffset="33"
+                  stroke-linecap="round"
+                />
+              </svg>
+              <div class="mini-gauge-text">78%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="section">
+        <h2 class="section-title">Buttons</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Primary & Secondary</div>
+            <button class="btn btn-primary">Primary Button</button>
+            <button class="btn btn-secondary">Secondary Button</button>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Icon Buttons</div>
+            <button class="icon-btn">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path
+                  d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"
+                />
+              </svg>
+            </button>
+            <button class="icon-btn">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Mic Button</div>
+            <button class="mic-button">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <button class="mic-button recording">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards & Containers -->
+      <div class="section">
+        <h2 class="section-title">Cards & Containers</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Basic Card</div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Card Title</div>
+              </div>
+              <p style="color: var(--text-secondary)">
+                Card content goes here with various information and details.
+              </p>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Stat Box</div>
+            <div class="stat-box">
+              <div class="stat-value">156</div>
+              <div class="stat-label">Messages Today</div>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Task Card</div>
+            <div class="task-card">
+              <div style="margin-bottom: 8px">
+                <span class="priority-badge priority-high">HIGH</span>
+                <span class="tag">#auth</span>
+                <span class="tag">#security</span>
+              </div>
+              <div class="task-title">Implement JWT authentication</div>
+              <div class="task-description">Set up JWT middleware and token generation</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges & Tags -->
+      <div class="section">
+        <h2 class="section-title">Badges & Tags</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Priority Badges</div>
+            <span class="priority-badge priority-high">HIGH</span>
+            <span class="priority-badge priority-medium">MEDIUM</span>
+            <span class="priority-badge priority-low">LOW</span>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Tags</div>
+            <span class="tag">#api</span>
+            <span class="tag">#backend</span>
+            <span class="tag">#ui</span>
+            <span class="tag">#bug</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Elements -->
+      <div class="section">
+        <h2 class="section-title">Form Elements</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Text Input</div>
+            <div class="form-group">
+              <label class="form-label">Label</label>
+              <input type="text" class="form-input" placeholder="Enter text..." />
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Textarea</div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea class="form-textarea" placeholder="Enter description..."></textarea>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Select Dropdown</div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-input">
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio Components -->
+      <div class="section">
+        <h2 class="section-title">Audio Components</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Audio Player</div>
+            <div class="audio-player">
+              <button class="play-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              </button>
+              <div class="waveform">
+                <div class="waveform-bar" style="height: 40%"></div>
+                <div class="waveform-bar" style="height: 60%"></div>
+                <div class="waveform-bar" style="height: 80%"></div>
+                <div class="waveform-bar" style="height: 50%"></div>
+                <div class="waveform-bar" style="height: 70%"></div>
+                <div class="waveform-bar" style="height: 90%"></div>
+                <div class="waveform-bar" style="height: 60%"></div>
+                <div class="waveform-bar" style="height: 40%"></div>
+              </div>
+              <div class="audio-duration">0:23</div>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Volume Meter</div>
+            <div class="volume-meter">
+              <div class="volume-level"></div>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Mode Selector</div>
+            <div class="mode-selector">
+              <button class="mode-btn active">Auto</button>
+              <button class="mode-btn">Manual</button>
+              <button class="mode-btn">PTT</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gauges -->
+      <div class="section">
+        <h2 class="section-title">Gauges</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Circular Gauge - CPU</div>
+            <div class="circular-gauge">
+              <svg class="gauge-svg" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="var(--bg-tertiary)"
+                  stroke-width="12"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="var(--accent-warning)"
+                  stroke-width="12"
+                  stroke-dasharray="314"
+                  stroke-dashoffset="69"
+                  stroke-linecap="round"
+                  style="transform: rotate(-90deg); transform-origin: center"
+                />
+                <text
+                  x="60"
+                  y="65"
+                  text-anchor="middle"
+                  font-size="24"
+                  fill="var(--text-primary)"
+                  font-weight="bold"
+                >
+                  78%
+                </text>
+              </svg>
+              <div class="gauge-label">CPU</div>
+              <div class="gauge-value">4 cores @ 3.2GHz</div>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Circular Gauge - Memory</div>
+            <div class="circular-gauge">
+              <svg class="gauge-svg" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="var(--bg-tertiary)"
+                  stroke-width="12"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="var(--accent-success)"
+                  stroke-width="12"
+                  stroke-dasharray="314"
+                  stroke-dashoffset="182"
+                  stroke-linecap="round"
+                  style="transform: rotate(-90deg); transform-origin: center"
+                />
+                <text
+                  x="60"
+                  y="65"
+                  text-anchor="middle"
+                  font-size="24"
+                  fill="var(--text-primary)"
+                  font-weight="bold"
+                >
+                  42%
+                </text>
+              </svg>
+              <div class="gauge-label">Memory</div>
+              <div class="gauge-value">6.7 / 16 GB</div>
+            </div>
+          </div>
+
+          <div class="component-showcase">
+            <div class="component-label">Circular Gauge - Disk</div>
+            <div class="circular-gauge">
+              <svg class="gauge-svg" viewBox="0 0 120 120">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="var(--bg-tertiary)"
+                  stroke-width="12"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="50"
+                  fill="none"
+                  stroke="var(--accent-blue)"
+                  stroke-width="12"
+                  stroke-dasharray="314"
+                  stroke-dashoffset="154"
+                  stroke-linecap="round"
+                  style="transform: rotate(-90deg); transform-origin: center"
+                />
+                <text
+                  x="60"
+                  y="65"
+                  text-anchor="middle"
+                  font-size="24"
+                  fill="var(--text-primary)"
+                  font-weight="bold"
+                >
+                  51%
+                </text>
+              </svg>
+              <div class="gauge-label">Disk</div>
+              <div class="gauge-value">256 / 500 GB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="section">
+        <h2 class="section-title">Navigation</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Nav Items</div>
+            <div class="nav-item active">
+              <span class="nav-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                </svg>
+              </span>
+              <span>Dashboard</span>
+            </div>
+            <div class="nav-item">
+              <span class="nav-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+              </span>
+              <span>Chat</span>
+            </div>
+            <div class="nav-item">
+              <span class="nav-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+              </span>
+              <span>Tasks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div class="section">
+        <h2 class="section-title">Log Components</h2>
+        <div class="component-grid">
+          <div class="component-showcase" style="grid-column: 1 / -1">
+            <div class="component-label">Log Lines</div>
+            <div class="log-line">
+              <span class="log-time">14:23:45</span>
+              <span class="log-level info">INFO</span>
+              <span class="log-message">Server started on http://localhost:3000</span>
+            </div>
+            <div class="log-line">
+              <span class="log-time">14:23:46</span>
+              <span class="log-level debug">DEBUG</span>
+              <span class="log-message">Loaded 234 routes</span>
+            </div>
+            <div class="log-line">
+              <span class="log-time">14:24:12</span>
+              <span class="log-level warn">WARN</span>
+              <span class="log-message">Slow query detected (234ms)</span>
+            </div>
+            <div class="log-line">
+              <span class="log-time">14:24:45</span>
+              <span class="log-level error">ERROR</span>
+              <span class="log-message">Failed to authenticate user</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="section">
+        <h2 class="section-title">Activity Components</h2>
+        <div class="component-grid">
+          <div class="component-showcase" style="grid-column: 1 / -1">
+            <div class="component-label">Activity Items</div>
+            <div class="activity-item">
+              <div class="activity-icon">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text">Claude created task: "Implement authentication"</div>
+                <div class="activity-time">2 minutes ago</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div
+                class="activity-icon"
+                style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success)"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M23 4v6h-6M1 20v-6h6" />
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                </svg>
+              </div>
+              <div class="activity-content">
+                <div class="activity-text">Dev server restarted</div>
+                <div class="activity-time">5 minutes ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div class="section">
+        <h2 class="section-title">Toast Notifications</h2>
+        <div class="component-grid">
+          <div class="component-showcase">
+            <div class="component-label">Toast Variants</div>
+            <div class="toast success">
+              <span class="toast-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </span>
+              <span>Success message</span>
+            </div>
+            <div class="toast error">
+              <span class="toast-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="15" y1="9" x2="9" y2="15" />
+                  <line x1="9" y1="9" x2="15" y2="15" />
+                </svg>
+              </span>
+              <span>Error message</span>
+            </div>
+            <div class="toast warning">
+              <span class="toast-icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"
+                  />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </span>
+              <span>Warning message</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Bubbles -->
+      <div class="section">
+        <h2 class="section-title">Message Components</h2>
+        <div class="component-grid">
+          <div class="component-showcase" style="grid-column: 1 / -1">
+            <div class="component-label">Message Bubbles</div>
+            <div class="message">
+              <div class="message-avatar">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 1.5S15.83 13 15 13z"
+                  />
+                </svg>
+              </div>
+              <div class="message-content">
+                <div class="message-header">
+                  <div class="message-author">Claude</div>
+                  <div class="message-time">2:34 PM</div>
+                </div>
+                <div class="message-text">This is an example message from the AI assistant.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

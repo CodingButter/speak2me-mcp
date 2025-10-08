@@ -6,7 +6,7 @@ import type {
   TodoDeleteInput,
   TodoOutput,
   Todo,
-} from "@stt-mcp/shared";
+} from "@s2m-pac/shared";
 import type { PrismaClient } from "@prisma/client";
 
 /**

@@ -1,10 +1,10 @@
 {
-  "name": "frontend",
+  "name": "@s2m-app/frontend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run --hot dev-server.ts",
+    "dev": "bun --hot --watch ./dev-server.ts",
     "build": "bun build src/main.tsx --outdir dist --target browser --minify --splitting --format esm",
     "preview": "bun run preview-server.ts",
     "test": "bun test",
@@ -13,16 +13,19 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@better-fetch/fetch": "^1.1.18",
     "@ricky0123/vad-web": "^0.0.28",
-    "@stt-mcp/shared": "workspace:*",
-    "@stt-mcp/ui": "workspace:*",
+    "@s2m-pac/shared": "workspace:*",
+    "@s2m-pac/ui": "workspace:*",
+    "@tanstack/react-query": "^5.90.2",
     "lucide-react": "^0.378.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.9.3",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
-    "@stt-mcp/config": "workspace:*",
+    "@s2m-pac/config": "workspace:*",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",
     "bun-plugin-tailwind": "^0.0.15",

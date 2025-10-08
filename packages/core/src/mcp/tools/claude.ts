@@ -1,4 +1,4 @@
-import type { ClaudeChatInput, ClaudeChatOutput } from "@stt-mcp/shared";
+import type { ClaudeChatInput, ClaudeChatOutput } from "@s2m-pac/shared";
 import { ClaudeCliService } from "../../services/claude-cli";
 import { ProjectContextService } from "../../services/project-context";
 import type { PrismaClient } from "@prisma/client";

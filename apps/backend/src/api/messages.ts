@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import type { CoreOperations } from "@stt-mcp/core";
+import type { CoreOperations } from "@s2m-pac/core";
 
 export const messagesRoutes = new Elysia()
   .get(

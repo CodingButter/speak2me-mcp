@@ -1,0 +1,110 @@
+                <div id="dashboard" class="view-container active">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Dashboard</h2>
+
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Project Overview</div>
+                            </div>
+                            <div style="color: var(--text-secondary); margin-bottom: 16px;">
+                                <div style="margin-bottom: 8px;">Status: <span style="color: var(--accent-success);">● Running</span></div>
+                                <div style="margin-bottom: 8px;">Uptime: 2h 34m</div>
+                                <div style="margin-bottom: 8px;">Dev Server: <a href="#" style="color: var(--accent-blue);">http://localhost:3000</a></div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary">Stop</button>
+                                <button class="btn btn-secondary">Restart</button>
+                                <button class="btn btn-primary">Build</button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">System Health</div>
+                            </div>
+                            <div class="stat-grid">
+                                <div class="stat-box">
+                                    <div class="stat-value">78%</div>
+                                    <div class="stat-label">CPU</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">42%</div>
+                                    <div class="stat-label">Memory</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">51%</div>
+                                    <div class="stat-label">Disk</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value" style="font-size: 16px;">45kb/s</div>
+                                    <div class="stat-label">Network</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Quick Stats</div>
+                        </div>
+                        <div class="stat-grid">
+                            <div class="stat-box">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Tasks Active</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">Messages Today</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">23m</div>
+                                <div class="stat-label">Voice Recording</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">Recent Activity</div>
+                        </div>
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 11 12 14 22 4"/>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Claude created task: "Implement authentication"</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Dev server restarted</div>
+                                    <div class="activity-time">5 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: rgba(139, 92, 246, 0.2); color: var(--accent-purple);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Build completed (2.3s)</div>
+                                    <div class="activity-time">8 minutes ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat View -->

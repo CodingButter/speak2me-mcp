@@ -1,0 +1,129 @@
+                <div id="project" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Project Controls</h2>
+
+                    <div class="process-grid">
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Dev Server</div>
+                                <div class="process-status">
+                                    <span class="status-dot" style="background: var(--accent-success);"></span>
+                                    Running (2h 34m)
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                http://localhost:3000
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-secondary">Stop</button>
+                                <button class="btn btn-secondary">Restart</button>
+                                <button class="btn btn-secondary">Logs</button>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Build</div>
+                                <div class="process-status" style="color: var(--text-tertiary);">
+                                    <span class="status-dot" style="background: var(--text-tertiary); animation: none;"></span>
+                                    Not Running
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                Last: 5m ago (2.3s) âœ"
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary">Build</button>
+                                <button class="btn btn-secondary">Build & Deploy</button>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Test Runner</div>
+                                <div class="process-status" style="color: var(--text-tertiary);">
+                                    <span class="status-dot" style="background: var(--text-tertiary); animation: none;"></span>
+                                    Not Running
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                Last: 12m ago (32 passed)
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary">Run Tests</button>
+                                <button class="btn btn-secondary">Watch</button>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Type Check</div>
+                                <div class="process-status" style="color: var(--text-tertiary);">
+                                    <span class="status-dot" style="background: var(--text-tertiary); animation: none;"></span>
+                                    Not Running
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                Last: Never
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary">Type Check</button>
+                                <button class="btn btn-secondary">Watch</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 48px;">
+                        <h2 style="margin-bottom: 24px; font-size: 20px;">System Resources</h2>
+                        <div class="gauge-container">
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-warning)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="69" stroke-linecap="round" 
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">78%</text>
+                            </svg>
+                            <div class="gauge-label">CPU</div>
+                            <div class="gauge-value">4 cores @ 3.2GHz</div>
+                            <div class="gauge-value" style="margin-top: 8px; color: var(--accent-warning);">68°C</div>
+                        </div>
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-success)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="182" stroke-linecap="round"
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">42%</text>
+                            </svg>
+                            <div class="gauge-label">Memory</div>
+                            <div class="gauge-value">6.7 / 16 GB</div>
+                            <div class="gauge-value" style="margin-top: 8px;">Swap: 0 / 8 GB</div>
+                        </div>
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-blue)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="154" stroke-linecap="round"
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">51%</text>
+                            </svg>
+                            <div class="gauge-label">Disk</div>
+                            <div class="gauge-value">256 / 500 GB</div>
+                            <div class="gauge-value" style="margin-top: 8px;">SSD</div>
+                        </div>
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-purple)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="242" stroke-linecap="round"
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">23%</text>
+                            </svg>
+                            <div class="gauge-label">Network</div>
+                            <div class="gauge-value">↑ 45 kb/s</div>
+                            <div class="gauge-value" style="margin-top: 8px;">↓ 128 kb/s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs View -->

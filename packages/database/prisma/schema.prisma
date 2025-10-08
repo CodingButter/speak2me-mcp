@@ -2,6 +2,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -9,20 +10,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Projects - top level organizational unit
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  conversations Conversation[]
+
+  @@index([createdAt])
+}
+
 // Conversations
 model Conversation {
   id           String    @id @default(uuid())
+  projectId    String?
   name         String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   messageCount Int       @default(0)
 
   // Relations
+  project        Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   messages       Message[]
   apiKeys        ApiKey?
   voiceConfig    VoiceConfig?
   projectContext ProjectContext?
+  claudeConfig   ClaudeConfig?
 
+  @@index([projectId, createdAt])
   @@index([createdAt])
 }
 
@@ -52,6 +71,7 @@ model ApiKey {
   openai         String?
   elevenlabs     String?
   gemini         String?
+  anthropic      String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -76,6 +96,43 @@ model VoiceConfig {
   phonemesEnabled Boolean @default(false)
   formality      String   @default("neutral") // "casual" | "neutral" | "formal"
   maxBreaksPer100Words Int @default(3)
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// Claude Agent Configuration per conversation
+model ClaudeConfig {
+  id             String   @id @default(uuid())
+  conversationId String   @unique
+
+  // System Prompt Template (with {{variables}})
+  systemPromptTemplate String? @default("You are Claude, a helpful AI assistant with voice capabilities. When responding, ALWAYS use SSML (Speech Synthesis Markup Language) tags to enhance the expressiveness and naturalness of your speech output. Use tags like <break>, <emphasis>, <prosody>, and <say-as> to make your responses more engaging and human-like. {{voiceDirectives}}")
+
+  // Voice Chat Directives
+  voiceEnabled   Boolean  @default(false)
+  voiceDirectives String? // Instructions about voice capabilities
+
+  // Claude Agent SDK Options
+  model          String   @default("claude-sonnet-4-5-20250929")
+  maxTurns       Int      @default(10)
+  permissionMode String   @default("acceptEdits") // acceptEdits, default, bypassPermissions, plan
+
+  // Tool Configuration
+  allowedTools   String?  // JSON array of tool names
+  disallowedTools String? // JSON array of tool names to exclude
+
+  // MCP Server Configuration
+  mcpServers     String?  // JSON object of MCP server configs
+
+  // Custom Instructions
+  customInstructions String? // Additional context/instructions
+
+  // Template Variables (user-defined replacements)
+  templateVars   String?  // JSON object of variable replacements
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

@@ -1,5 +1,5 @@
 {
-  "name": "@stt-mcp/core",
+  "name": "@s2m-pac/core",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,18 +12,20 @@
     "./storage": "./src/storage/index.ts"
   },
   "scripts": {
+    "dev": "bun build.ts --watch",
+    "build": "bun build.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
-    "@stt-mcp/database": "workspace:*",
-    "@stt-mcp/shared": "workspace:*",
+    "@s2m-pac/database": "workspace:*",
+    "@s2m-pac/shared": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@stt-mcp/config": "workspace:*",
+    "@s2m-pac/config": "workspace:*",
     "typescript": "^5.4.5"
   }
 }

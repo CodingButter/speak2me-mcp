@@ -1,0 +1,210 @@
+                <div id="tasks" class="view-container">
+                    <div class="view-header">
+                        <h2 style="font-size: 24px;">Tasks</h2>
+                        <div class="view-header-actions">
+                            <select class="select">
+                                <option>Filter: All</option>
+                                <option>High Priority</option>
+                                <option>In Progress</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="showModal('newTask')">+ New Task</button>
+                        </div>
+                    </div>
+
+                    <div class="kanban-board">
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">Backlog</div>
+                                <div class="column-count">12</div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-medium">MEDIUM</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#api</span>
+                                        <span class="tag">#backend</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Design API endpoints</div>
+                                <div class="task-description">Create RESTful endpoints for user management</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        Unassigned
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        0
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-low">LOW</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#docs</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Update README</div>
+                                <div class="task-description">Add installation instructions and usage examples</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        Claude
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        2
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">In Progress</div>
+                                <div class="column-count">3</div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-high">HIGH</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#auth</span>
+                                        <span class="tag">#security</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Implement JWT authentication</div>
+                                <div class="task-description">Set up JWT middleware and token generation</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        You
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        5
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-medium">MEDIUM</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#ui</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Build login form</div>
+                                <div class="task-description">Create responsive login UI with validation</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        Claude
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        3
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">Blocked</div>
+                                <div class="column-count">1</div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-high">HIGH</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#bug</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Fix session persistence</div>
+                                <div class="task-description">Sessions not persisting after refresh. Waiting on DB migration.</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        You
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="16" x2="12" y2="12"/>
+                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        </svg>
+                                        Blocked
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">Completed</div>
+                                <div class="column-count">45</div>
+                            </div>
+                            <div class="task-card" style="opacity: 0.6;">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-high">HIGH</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#setup</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Initialize project</div>
+                                <div class="task-description">Set up project structure and dependencies</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        2 days ago
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="task-card" style="opacity: 0.6;">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-medium">MEDIUM</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#db</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Set up database</div>
+                                <div class="task-description">Configure Prisma and create initial schema</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        1 day ago
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project View -->

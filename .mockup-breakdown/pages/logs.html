@@ -1,0 +1,85 @@
+                <div id="logs" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Logs</h2>
+
+                    <div class="logs-controls">
+                        <select class="select">
+                            <option>Process: dev-server</option>
+                            <option>Process: build</option>
+                            <option>Process: test</option>
+                        </select>
+                        <select class="select">
+                            <option>Level: All</option>
+                            <option>Level: Error</option>
+                            <option>Level: Warn</option>
+                            <option>Level: Info</option>
+                        </select>
+                        <input type="text" class="search-input" placeholder="Search logs...">
+                        <button class="btn btn-secondary">Clear</button>
+                        <button class="btn btn-secondary">Download</button>
+                    </div>
+
+                    <div class="logs-container">
+                        <div class="log-line">
+                            <span class="log-time">14:23:45</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Server started on http://localhost:3000</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:23:46</span>
+                            <span class="log-level debug">DEBUG</span>
+                            <span class="log-message">Loaded 234 routes</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:23:47</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Connected to database</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:24:12</span>
+                            <span class="log-level warn">WARN</span>
+                            <span class="log-message">Slow query detected (234ms)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:24:45</span>
+                            <span class="log-level error">ERROR</span>
+                            <span class="log-message">Failed to authenticate user</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time"></span>
+                            <span class="log-level"></span>
+                            <span class="log-message" style="padding-left: 20px;">at handleAuth (auth.ts:123)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time"></span>
+                            <span class="log-level"></span>
+                            <span class="log-message" style="padding-left: 20px;">at middleware (index.ts:45)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:03</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Request: GET /api/users</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:03</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Response: 200 (23ms)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:12</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Hot reload triggered</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:13</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Build completed (1.2s)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:14</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Server restarted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes View -->

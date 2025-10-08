@@ -1,4 +1,4 @@
-import type { Conversation, Message, Settings } from "@stt-mcp/shared";
+import type { Conversation, Message, Settings } from "@s2m-pac/shared";
 
 /**
  * Storage interface for conversations and messages

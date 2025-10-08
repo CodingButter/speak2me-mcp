@@ -1,6 +1,6 @@
 import { describe, test, expect } from "bun:test";
 import { handleSpeak, handleListen } from "./tools";
-import type { SpeakInput, ListenInput } from "@stt-mcp/shared";
+import type { SpeakInput, ListenInput } from "@s2m-pac/shared";
 
 describe("handleSpeak", () => {
   const mockContext = {

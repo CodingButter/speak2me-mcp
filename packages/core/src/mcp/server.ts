@@ -4,7 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { speakInputSchema, listenInputSchema } from "@stt-mcp/shared";
+import { speakInputSchema, listenInputSchema } from "@s2m-pac/shared";
 import { handleSpeak, handleListen } from "./tools";
 
 /**

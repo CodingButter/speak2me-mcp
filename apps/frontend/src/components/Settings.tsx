@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { VolumeMeter } from "./VolumeMeter";
-import type { ApiKeys } from "@stt-mcp/shared";
+import type { ApiKeys } from "@s2m-pac/shared";
 
 interface SettingsProps {
   isOpen: boolean;

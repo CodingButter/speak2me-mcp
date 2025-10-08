@@ -1,5 +1,5 @@
 {
-  "extends": "@stt-mcp/config/tsconfig",
+  "extends": "@s2m-pac/config/tsconfig",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

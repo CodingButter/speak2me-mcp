@@ -1,5 +1,5 @@
 {
-  "name": "@stt-mcp/platform",
+  "name": "@s2m-pac/platform",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,13 +10,15 @@
     "./electron": "./src/electron.ts"
   },
   "scripts": {
+    "dev": "bun build.ts --watch",
+    "build": "bun build.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@stt-mcp/shared": "workspace:*"
+    "@s2m-pac/shared": "workspace:*"
   },
   "devDependencies": {
-    "@stt-mcp/config": "workspace:*",
+    "@s2m-pac/config": "workspace:*",
     "typescript": "^5.4.5"
   }
 }

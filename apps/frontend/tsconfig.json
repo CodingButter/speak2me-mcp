@@ -1,5 +1,5 @@
 {
-  "extends": "@stt-mcp/config/tsconfig",
+  "extends": "@s2m-pac/config/tsconfig",
   "compilerOptions": {
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],

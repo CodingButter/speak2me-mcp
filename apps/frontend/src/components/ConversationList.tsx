@@ -1,11 +1,12 @@
-import { MessageSquare, Plus } from "lucide-react";
-import type { Conversation } from "@stt-mcp/shared";
+import { MessageSquare, Plus, Trash2 } from "lucide-react";
+import type { Conversation } from "@s2m-pac/shared";
 
 interface ConversationListProps {
   conversations: Conversation[];
   activeId?: string;
   onSelect: (id: string) => void;
   onNew: () => void;
+  onDelete: (id: string) => void;
 }
 
 /**
@@ -17,6 +18,7 @@ export function ConversationList({
   activeId,
   onSelect,
   onNew,
+  onDelete,
 }: ConversationListProps) {
   return (
     <div className="h-full flex flex-col">
@@ -40,11 +42,10 @@ export function ConversationList({
         ) : (
           <div className="p-2 space-y-1">
             {conversations.map((conv) => (
-              <button
+              <div
                 key={conv.id}
-                onClick={() => onSelect(conv.id)}
                 className={`
-                  w-full flex items-start gap-2 px-3 py-2 rounded-md text-left
+                  group relative flex items-start gap-2 px-3 py-2 rounded-md
                   transition-colors
                   ${
                     activeId === conv.id
@@ -53,16 +54,31 @@ export function ConversationList({
                   }
                 `}
               >
-                <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">
-                    {conv.name || "Untitled"}
+                <button
+                  onClick={() => onSelect(conv.id)}
+                  className="flex items-start gap-2 flex-1 min-w-0 text-left"
+                >
+                  <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium truncate">
+                      {conv.name || "Untitled"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {conv.messageCount} messages
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {conv.messageCount} messages
-                  </div>
-                </div>
-              </button>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(conv.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/10 hover:text-destructive transition-all"
+                  aria-label="Delete conversation"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             ))}
           </div>
         )}

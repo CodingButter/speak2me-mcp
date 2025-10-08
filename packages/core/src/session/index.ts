@@ -1,4 +1,4 @@
-import type { ApiKeys, SessionInfo } from "@stt-mcp/shared";
+import type { ApiKeys, SessionInfo } from "@s2m-pac/shared";
 
 /**
  * Session Manager

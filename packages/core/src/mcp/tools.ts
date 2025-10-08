@@ -1,4 +1,4 @@
-import type { SpeakInput, SpeakOutput, ListenInput, ListenOutput } from "@stt-mcp/shared";
+import type { SpeakInput, SpeakOutput, ListenInput, ListenOutput } from "@s2m-pac/shared";
 
 /**
  * Core business logic for the 'speak' MCP tool

@@ -4,3 +4,4 @@ export * from "./stt";
 export * from "./claude-cli";
 export * from "./project-context";
 export * from "./process-manager";
+export * from "./template";

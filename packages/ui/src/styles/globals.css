@@ -1,53 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: oklch(100% 0 0);
-  --color-foreground: oklch(9% 0.03 285.88);
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(9% 0.03 285.88);
-  --color-popover: oklch(100% 0 0);
-  --color-popover-foreground: oklch(9% 0.03 285.88);
-  --color-primary: oklch(11% 0.02 285.88);
-  --color-primary-foreground: oklch(98% 0 0);
-  --color-secondary: oklch(96% 0 0);
-  --color-secondary-foreground: oklch(11% 0.02 285.88);
-  --color-muted: oklch(96% 0 0);
-  --color-muted-foreground: oklch(47% 0.01 285.88);
-  --color-accent: oklch(96% 0 0);
-  --color-accent-foreground: oklch(11% 0.02 285.88);
-  --color-destructive: oklch(60% 0.17 25);
-  --color-destructive-foreground: oklch(98% 0 0);
-  --color-border: oklch(91% 0.01 285.88);
-  --color-input: oklch(91% 0.01 285.88);
-  --color-ring: oklch(9% 0.03 285.88);
+  /* Dark theme design tokens from mockup */
+  --color-bg-primary: #0f0f14;
+  --color-bg-secondary: #1a1a24;
+  --color-bg-tertiary: #252534;
+  --color-bg-hover: #2d2d3d;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b0b0c0;
+  --color-text-tertiary: #808090;
+
+  --color-accent-blue: #00d4ff;
+  --color-accent-purple: #8b5cf6;
+  --color-accent-success: #10b981;
+  --color-accent-warning: #f59e0b;
+  --color-accent-error: #ef4444;
+
+  --color-border: #2d2d3d;
+
+  /* Shadcn/ui compatible tokens mapped to our dark theme */
+  --color-background: #0f0f14;
+  --color-foreground: #ffffff;
+  --color-card: #1a1a24;
+  --color-card-foreground: #ffffff;
+  --color-popover: #1a1a24;
+  --color-popover-foreground: #ffffff;
+  --color-primary: #00d4ff;
+  --color-primary-foreground: #0f0f14;
+  --color-secondary: #252534;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #252534;
+  --color-muted-foreground: #b0b0c0;
+  --color-accent: #8b5cf6;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #ffffff;
+  --color-input: #2d2d3d;
+  --color-ring: #00d4ff;
 
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
-}
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: oklch(9% 0.03 285.88);
-    --color-foreground: oklch(98% 0 0);
-    --color-card: oklch(9% 0.03 285.88);
-    --color-card-foreground: oklch(98% 0 0);
-    --color-popover: oklch(9% 0.03 285.88);
-    --color-popover-foreground: oklch(98% 0 0);
-    --color-primary: oklch(98% 0 0);
-    --color-primary-foreground: oklch(11% 0.02 285.88);
-    --color-secondary: oklch(18% 0.02 285.88);
-    --color-secondary-foreground: oklch(98% 0 0);
-    --color-muted: oklch(18% 0.02 285.88);
-    --color-muted-foreground: oklch(65% 0.01 285.88);
-    --color-accent: oklch(18% 0.02 285.88);
-    --color-accent-foreground: oklch(98% 0 0);
-    --color-destructive: oklch(31% 0.13 25);
-    --color-destructive-foreground: oklch(98% 0 0);
-    --color-border: oklch(18% 0.02 285.88);
-    --color-input: oklch(18% 0.02 285.88);
-    --color-ring: oklch(84% 0.01 285.88);
-  }
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -57,4 +53,40 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Custom Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-primary);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-bg-tertiary);
+  border-radius: 6px;
+  border: 2px solid var(--color-bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-bg-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--color-border);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-bg-primary);
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-bg-tertiary) var(--color-bg-primary);
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { User, Bot, Play } from "lucide-react";
-import type { Message } from "@stt-mcp/shared";
+import type { Message } from "@s2m-pac/shared";
 
 interface ChatViewProps {
   messages: Message[];

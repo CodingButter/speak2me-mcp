@@ -1,11 +1,16 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
-import { storage } from "@stt-mcp/database";
-import { SessionManager, CoreOperations } from "@stt-mcp/core";
+import { storage } from "@s2m-pac/database";
+import { SessionManager, CoreOperations } from "@s2m-pac/core";
+import { projectsRoutes } from "./api/projects";
 import { conversationsRoutes } from "./api/conversations";
 import { messagesRoutes } from "./api/messages";
 import { settingsRoutes } from "./api/settings";
 import { keysRoutes } from "./api/keys";
+import { voicesRoutes } from "./api/voices";
+import { systemMetricsRoutes } from "./api/system-metrics";
+import { filesystemRoutes } from "./api/filesystem";
+import { claudeRoutes } from "./api/claude";
 import { handleSSEConnection } from "./mcp/sse-server";
 
 // Initialize core systems
@@ -21,12 +26,17 @@ const app = new Elysia()
   .get("/sse/:id", (context) => handleSSEConnection(context, coreOps, sessionManager))
   .group("/api", (app) =>
     app
+      .use(projectsRoutes)
       .use(conversationsRoutes)
       .use(messagesRoutes)
       .use(settingsRoutes)
       .use(keysRoutes)
+      .use(voicesRoutes)
+      .use(systemMetricsRoutes)
+      .use(filesystemRoutes)
+      .use(claudeRoutes)
   )
-  .listen(3000);
+  .listen(3001);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
 console.log(`📡 MCP SSE endpoint: http://${app.server?.hostname}:${app.server?.port}/sse/<conversation_id>`);

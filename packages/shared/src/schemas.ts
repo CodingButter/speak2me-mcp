@@ -53,6 +53,7 @@ export const apiKeysSchema = z.object({
   openai: z.string().optional(),
   elevenlabs: z.string().optional(),
   gemini: z.string().optional(),
+  anthropic: z.string().optional(),
 });
 
 export const messageSchema = z.object({
@@ -77,6 +78,7 @@ export const messageSchema = z.object({
 export const conversationSchema = z.object({
   id: z.string(),
   name: z.string().optional(),
+  projectId: z.string().optional(),
   createdAt: z.number(),
   updatedAt: z.number(),
   messageCount: z.number().default(0),
@@ -109,6 +111,10 @@ export const settingsSchema = z.object({
   ttsModel: z.string().default("eleven_flash_v2"),
   ttsStreamPlayback: z.boolean().default(true),
   ttsAutoplay: z.boolean().default(true),
+  ttsStability: z.number().min(0).max(1).default(0.5),
+  ttsSimilarity: z.number().min(0).max(1).default(0.75),
+  ttsStyleExaggeration: z.number().min(0).max(1).default(0),
+  ttsSpeakerBoost: z.boolean().default(true),
 
   // SSML Enhancer
   ssmlEnabled: z.boolean().default(true),
@@ -292,5 +298,54 @@ export const processOutputSchema = z.object({
   processes: z.array(processInfoSchema).optional(),
   output: z.array(z.string()).optional(),
   errors: z.array(z.string()).optional(),
+  reason: z.string().optional(),
+});
+
+// Claude Configuration Schemas
+
+export const mcpServerConfigSchema = z.object({
+  type: z.enum(["stdio", "sse", "http", "sdk"]).optional(),
+  command: z.string().optional(),
+  args: z.array(z.string()).optional(),
+  env: z.record(z.string()).optional(),
+  url: z.string().optional(),
+  headers: z.record(z.string()).optional(),
+});
+
+export const claudeConfigSchema = z.object({
+  id: z.string(),
+  conversationId: z.string(),
+  systemPromptTemplate: z.string().nullable(),
+  voiceEnabled: z.boolean(),
+  voiceDirectives: z.string().nullable(),
+  model: z.string(),
+  maxTurns: z.number(),
+  permissionMode: z.enum(["default", "acceptEdits", "bypassPermissions", "plan"]),
+  allowedTools: z.array(z.string()).nullable(),
+  disallowedTools: z.array(z.string()).nullable(),
+  mcpServers: z.record(mcpServerConfigSchema).nullable(),
+  customInstructions: z.string().nullable(),
+  templateVars: z.record(z.string()).nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});
+
+export const claudeConfigInputSchema = z.object({
+  systemPromptTemplate: z.string().optional(),
+  voiceEnabled: z.boolean().optional(),
+  voiceDirectives: z.string().optional(),
+  model: z.string().optional(),
+  maxTurns: z.number().optional(),
+  permissionMode: z.enum(["default", "acceptEdits", "bypassPermissions", "plan"]).optional(),
+  allowedTools: z.array(z.string()).optional(),
+  disallowedTools: z.array(z.string()).optional(),
+  mcpServers: z.record(mcpServerConfigSchema).optional(),
+  customInstructions: z.string().optional(),
+  templateVars: z.record(z.string()).optional(),
+});
+
+export const claudeConfigOutputSchema = z.object({
+  ok: z.boolean(),
+  config: claudeConfigSchema.optional(),
   reason: z.string().optional(),
 });

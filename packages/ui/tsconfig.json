@@ -1,6 +1,9 @@
 {
-  "extends": "@stt-mcp/config/tsconfig",
+  "extends": "@s2m-pac/config/tsconfig",
   "compilerOptions": {
+    "target": "es2022",
+    "outDir": "dist",
+    "moduleResolution": "bundler",
     "jsx": "react-jsx",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "paths": {

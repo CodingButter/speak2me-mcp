@@ -1,0 +1,2556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speak2Me - AI Development Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f14;
+            --bg-secondary: #1a1a24;
+            --bg-tertiary: #252534;
+            --bg-hover: #2d2d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0c0;
+            --text-tertiary: #808090;
+            --accent-blue: #00d4ff;
+            --accent-purple: #8b5cf6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-error: #ef4444;
+            --border-color: #2d2d3d;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            flex-shrink: 0;
+        }
+
+        .project-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .project-name {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge.running {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-success);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .system-stats {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .mini-gauge {
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+
+        .mini-gauge svg {
+            transform: rotate(-90deg);
+        }
+
+        .mini-gauge-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .icon-btn svg {
+            stroke: currentColor;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400&h=800&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.08;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .sidebar > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
+        .nav-items {
+            flex: 1;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--accent-blue);
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .nav-icon {
+            min-width: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .conversations-list {
+            border-top: 1px solid var(--border-color);
+            padding: 12px;
+        }
+
+        .conversations-header {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .conversation-item {
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            margin-bottom: 4px;
+        }
+
+        .conversation-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .conversation-item.active {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                width: 100%;
+            }
+        }
+
+        .view-container {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .view-container.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard View */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 640px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: #00b8e6;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Chat View */
+        .chat-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .messages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            color: var(--bg-primary);
+        }
+
+        .message-avatar svg {
+            fill: currentColor;
+        }
+
+        .message.user .message-avatar {
+            background: var(--accent-blue);
+        }
+
+        .message-content {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .message.user .message-content {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .message-author {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .audio-player {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .play-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: none;
+            color: var(--bg-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .play-btn svg {
+            fill: currentColor;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .waveform {
+            flex: 1;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .waveform-bar {
+            flex: 1;
+            background: var(--accent-blue);
+            border-radius: 2px;
+            opacity: 0.3;
+            transition: all 0.2s;
+        }
+
+        .audio-duration {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Kanban Board */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .kanban-column {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 400px;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .column-title {
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .column-count {
+            background: var(--bg-tertiary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .task-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: move;
+            transition: all 0.2s;
+        }
+
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-error);
+        }
+
+        .priority-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-warning);
+        }
+
+        .priority-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-success);
+        }
+
+        .task-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 3px 8px;
+            background: rgba(139, 92, 246, 0.2);
+            border-radius: 4px;
+            font-size: 11px;
+            color: var(--accent-purple);
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .task-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        /* Process Monitor */
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 640px) {
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .process-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .process-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .process-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .process-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .process-info {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .process-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .gauge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .circular-gauge {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.2s;
+        }
+
+        .circular-gauge:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent-blue);
+        }
+
+        .gauge-svg {
+            width: 120px;
+            height: 120px;
+        }
+
+        .gauge-label {
+            margin-top: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .gauge-value {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Logs View */
+        .logs-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .select {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .logs-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            height: 500px;
+            overflow-y: auto;
+        }
+
+        .log-line {
+            padding: 6px 0;
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .log-time {
+            color: var(--text-tertiary);
+            min-width: 80px;
+        }
+
+        .log-level {
+            min-width: 60px;
+            font-weight: 600;
+        }
+
+        .log-level.info { color: var(--accent-blue); }
+        .log-level.warn { color: var(--accent-warning); }
+        .log-level.error { color: var(--accent-error); }
+        .log-level.debug { color: var(--accent-purple); }
+
+        .log-message {
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        /* Bottom Bar - Audio Controls */
+        .bottom-bar {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .volume-meter {
+            width: 200px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .volume-level {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-success), var(--accent-warning), var(--accent-error));
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 0;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--accent-blue);
+            color: var(--bg-primary);
+        }
+
+        .mic-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            border: none;
+            color: var(--bg-primary);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .mic-button svg {
+            stroke: currentColor;
+            fill: none;
+        }
+
+        .mic-button.recording svg {
+            fill: currentColor;
+            stroke: none;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.1);
+        }
+
+        .mic-button.recording {
+            background: var(--accent-error);
+            animation: pulse 1.5s infinite;
+        }
+
+        .audio-status {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 640px) {
+            .modal {
+                width: 95%;
+                padding: 20px;
+                max-height: 90vh;
+            }
+
+            .modal-title {
+                font-size: 18px;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 24px;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.2);
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .activity-icon svg {
+            stroke: currentColor;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 4px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            animation: slideInRight 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); }
+            to { transform: translateX(0); }
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-icon svg {
+            stroke: currentColor;
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-success); }
+        .toast.success .toast-icon { color: var(--accent-success); }
+        .toast.error { border-left: 3px solid var(--accent-error); }
+        .toast.warning { border-left: 3px solid var(--accent-warning); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bg-hover);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .circular-gauge {
+                min-width: 180px;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .sidebar {
+                position: fixed;
+                left: -240px;
+                height: 100%;
+                z-index: 200;
+                transition: left 0.3s;
+            }
+
+            .sidebar.mobile-open {
+                left: 0;
+            }
+
+            .main-content {
+                padding: 16px;
+            }
+
+            .system-stats {
+                display: none;
+            }
+
+            .kanban-board {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+
+            .bottom-bar {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .volume-meter {
+                width: 150px;
+            }
+
+            .audio-status {
+                width: 100%;
+                text-align: center;
+            }
+
+            .circular-gauge {
+                min-width: 45%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+
+            .project-name {
+                font-size: 14px;
+            }
+
+            .project-name svg {
+                display: none;
+            }
+
+            .main-content {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .card-title {
+                font-size: 14px;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kanban-board {
+                grid-template-columns: 1fr;
+            }
+
+            .logs-controls {
+                flex-direction: column;
+            }
+
+            .logs-controls .select,
+            .logs-controls .search-input {
+                width: 100%;
+            }
+
+            .chat-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .message {
+                font-size: 14px;
+            }
+
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+            }
+
+            .message-avatar svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .bottom-bar {
+                padding: 12px 16px;
+            }
+
+            .mode-selector {
+                width: 100%;
+                order: 5;
+            }
+
+            .mode-btn {
+                flex: 1;
+            }
+
+            .volume-meter {
+                width: 100%;
+                order: 1;
+            }
+
+            .mic-button {
+                order: 2;
+            }
+
+            .btn {
+                order: 3;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .audio-status {
+                order: 4;
+                font-size: 12px;
+            }
+
+            .conversations-list {
+                display: none;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .notes-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .notes-sidebar {
+                display: none;
+            }
+
+            .circular-gauge {
+                min-width: 100%;
+            }
+        }
+
+        .notes-grid {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 968px) {
+            .notes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Task View Header */
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .view-header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 640px) {
+            .view-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .view-header-actions {
+                width: 100%;
+            }
+
+            .view-header-actions .select {
+                flex: 1;
+            }
+        }
+
+        /* Hamburger Menu Button */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .hamburger:hover {
+            background: var(--bg-hover);
+        }
+
+        .hamburger svg {
+            stroke: currentColor;
+        }
+
+        @media (max-width: 968px) {
+            .hamburger {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        /* Mobile Overlay */
+        .mobile-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+        }
+
+        @media (min-width: 969px) {
+            .mobile-overlay {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="project-info">
+                <button class="hamburger" onclick="toggleMobileMenu()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <div class="project-name">
+                    <svg width="40" height="40" viewBox="0 0 816 802" fill="currentColor">
+                        <path fill-rule="evenodd" d="m404.5 0.19c149.12-0.12 234.75 0.17 243.5 0.84 7.42 0.56 18 1.72 23.5 2.57 5.5 0.86 14.27 2.62 19.5 3.93 5.23 1.3 13.55 3.78 18.5 5.52 4.95 1.74 13.73 5.56 19.5 8.49 5.77 2.93 14.52 8.18 19.44 11.65 4.92 3.47 12.79 10.14 17.5 14.81 4.71 4.67 11.09 11.88 14.18 16 3.08 4.12 7.93 11.55 10.77 16.5 2.84 4.95 7 13.72 9.26 19.5 2.26 5.78 5.36 15.45 6.9 21.5 1.53 6.05 3.5 15.95 4.37 22 0.87 6.05 2.1 16.4 2.73 23 0.82 8.44 1.28 71.15 1.57 211.5 0.27 129.01 0.04 209.39-0.64 227.5-0.58 15.4-1.51 32.05-2.06 37-0.55 4.95-2.18 15.08-3.62 22.5-1.44 7.42-4.4 18.9-6.58 25.5-2.18 6.6-5.85 15.83-8.17 20.5-2.32 4.67-6.73 12.33-9.79 17-3.07 4.67-8.37 11.65-11.78 15.5-3.41 3.85-9.44 9.84-13.39 13.3-3.96 3.47-10.79 8.73-15.19 11.69-4.4 2.96-12.27 7.62-17.5 10.35-5.23 2.73-14 6.63-19.5 8.67-5.5 2.04-15.63 4.97-22.5 6.53-6.88 1.55-18.58 3.64-26 4.64-12.74 1.72-26.93 1.82-251.5 1.82-193.97 0-239.94-0.25-248.5-1.35-5.78-0.74-15.9-2.47-22.5-3.85-6.6-1.37-16.05-3.83-21-5.47-4.95-1.64-14.4-5.56-21-8.71-6.6-3.15-15.38-7.9-19.5-10.56-4.13-2.65-10.2-6.97-13.5-9.6-3.3-2.63-9.72-8.53-14.26-13.12-4.55-4.59-11.16-12.39-14.7-17.34-3.53-4.95-8.31-12.83-10.62-17.5-2.3-4.67-5.75-12.55-7.65-17.5-1.9-4.95-4.72-13.95-6.26-20-1.54-6.05-3.52-16.17-4.4-22.5-0.88-6.33-2.05-17.35-2.61-24.5-0.64-8.21-1-91.9-0.99-227 0.01-128.53 0.41-219.79 1-228.5 0.53-7.97 1.67-19.68 2.52-26 0.85-6.32 2.84-16.9 4.43-23.5 1.59-6.6 4.22-15.6 5.84-20 1.62-4.4 4.75-11.6 6.95-16 2.21-4.4 6.85-12.28 10.32-17.5 3.97-5.98 10.59-13.78 17.87-21.07 7.57-7.57 15.01-13.85 21.56-18.19 5.5-3.65 14.72-8.87 20.5-11.6 5.78-2.74 14.78-6.37 20-8.07 5.22-1.71 14.67-4.19 21-5.51 6.32-1.33 16-2.9 21.5-3.5 5.5-0.59 12.47-1.21 15.5-1.38 3.03-0.17 109-0.39 235.5-0.49zm126 144.36c-3.3 1.35-8.43 3.92-11.41 5.71-2.97 1.78-8.88 6.61-13.13 10.74-4.25 4.12-9.72 10.65-12.17 14.5-2.44 3.85-5.36 9.03-6.49 11.5-1.13 2.47-3.11 8.32-4.39 13l-2.34 8.5c-0.6 134.29-0.35 161.45 0.46 169.5 0.71 6.95 2.22 14.66 3.83 19.5 1.47 4.4 4.54 11.15 6.82 15 2.27 3.85 6.77 9.88 9.98 13.4 3.21 3.52 8.54 8.32 11.84 10.67 3.3 2.35 9.37 5.87 13.5 7.82 4.12 1.95 10.2 4.26 13.5 5.13 3.3 0.87 10.95 1.84 17 2.16 7.99 0.41 13.33 0.12 19.5-1.05 4.67-0.88 10.75-2.42 13.5-3.42 2.75-1 8.15-3.57 12-5.71 3.85-2.15 10.55-7.31 14.88-11.45 4.33-4.15 9.56-10.03 11.61-13.05 2.05-3.02 4.85-7.75 6.23-10.5 1.37-2.75 3.57-8.82 4.88-13.5l2.4-8.5v-180c-3.49-12.01-5.9-18.31-7.6-21.75-1.71-3.44-5.49-9.4-8.41-13.25-2.91-3.85-7.48-8.85-10.14-11.1-2.67-2.26-7.33-5.66-10.35-7.57-3.02-1.91-8.42-4.69-12-6.17-3.58-1.49-9.65-3.36-13.5-4.16-4.09-0.86-11.99-1.43-19-1.38-6.6 0.04-14.92 0.73-18.5 1.52-3.58 0.79-9.2 2.55-12.5 3.91zm-390.25 3.33c-2.06 1.04-5.58 3.85-7.81 6.25-2.24 2.4-4.68 5.49-5.42 6.87-0.74 1.37-1.94 4.75-2.67 7.5-1.08 4.07-1.33 42.54-1.35 207.5-0.02 174.35 0.18 203.2 1.44 207.5 0.8 2.75 2.97 7.02 4.83 9.5 1.86 2.48 5.6 5.96 8.31 7.74 3.3 2.18 7.05 3.6 11.42 4.31 4.46 0.73 54.54 0.94 159.5 0.69 97.66-0.24 154.09-0.74 156-1.37 2.42-0.81 3.23-1.86 4.17-5.43 0.64-2.44 1.21-4.55 1.25-4.69 0.04-0.14 0.22-0.81 0.4-1.5 0.17-0.69-0.05-2.04-0.5-3-0.47-1-0.31-3.36 0.37-5.5 0.65-2.06 1.34-5.55 1.54-7.75 0.2-2.2 0.34-5.91 0.31-8.25-0.03-2.92 0.43-4.41 1.46-4.75 1.14-0.38 1.26-0.98 0.5-2.5q-1-2 0-2.5c0.59-0.29 0.64-1.02 0.13-1.75-0.47-0.69-0.73-2.83-0.58-4.75 0.15-1.92 0.35-3.5 0.44-3.5 0.09 0 0.35-0.79 0.59-1.75 0.23-0.96-0.03-1.98-0.58-2.25-0.55-0.27-0.77-0.95-0.5-1.5 0.27-0.55-0.04-2.01-0.7-3.25-0.67-1.24-1.24-2.92-1.27-3.75-0.03-0.83 0.28-2.06 0.7-2.75 0.43-0.69 0.54-1.7 0.27-2.25-0.27-0.55-0.95-0.77-1.5-0.5-0.55 0.27-0.89-0.49-0.75-1.71 0.16-1.39-0.51-2.59-1.82-3.25-1.13-0.57-2.14-1.38-2.25-1.79-0.1-0.41-0.92-2.44-1.83-4.5-0.91-2.06-1.69-4.42-1.75-5.25-0.05-0.83-0.66-1.39-1.35-1.25-0.69 0.14-1.16-0.31-1.05-1 0.11-0.69-0.65-2.82-1.7-4.75-1.06-1.93-1.94-3.95-1.96-4.5-0.02-0.55-1.39-1.17-3.04-1.38-1.65-0.21-32.36-0.55-68.25-0.75l-65.25-0.37c-5.82-5.82-6-6.47-6-13.75 0.01-5.99 0.46-8.49 2-11 1.42-2.3 2.95-3.39 5.25-3.74 1.79-0.27 25.52-0.69 52.75-0.94 27.23-0.24 50.85-0.63 52.5-0.87 1.65-0.25 3.23-0.49 3.5-0.54 0.27-0.05-0.4-1.02-1.5-2.16-1.1-1.14-1.66-2.05-1.25-2.03 0.41 0.02 0.11-0.98-0.66-2.22-0.78-1.24-1.23-3.49-1-5 0.22-1.51-0.04-2.98-0.59-3.25-0.55-0.27-0.77-0.95-0.5-1.5 0.27-0.55-0.18-2.35-1-4-0.82-1.65-1.95-3-2.5-3-0.55 0-0.77-1.13-0.5-2.5 0.27-1.38 0.05-2.73-0.5-3-0.55-0.27-2.35-4.77-4-10-1.65-5.23-2.8-9.84-2.55-10.25 0.25-0.41-0.42-1.54-1.5-2.5-1.31-1.18-1.79-2.57-1.45-4.25 0.35-1.73-0.04-2.76-1.25-3.36-1.27-0.62-1.41-1.04-0.5-1.5 0.85-0.44 0.96-1.2 0.33-2.39-0.51-0.96-1.22-3.32-1.58-5.25-0.36-1.93-0.92-3.95-1.25-4.5-0.34-0.55-0.73-2.57-0.89-4.5-0.15-1.93-0.3-4.29-0.32-5.25-0.02-0.96-1.05-2.31-2.29-3-1.67-0.93-12.46-1.32-41.75-1.53-28.69-0.2-40.15-0.61-41.86-1.5-1.3-0.67-2.99-2.46-3.75-3.97-0.77-1.51-1.39-5.68-1.39-9.25 0-3.57 0.61-7.74 1.36-9.25 0.75-1.51 2.67-3.29 4.25-3.95 2.03-0.85 14.89-1.31 43.39-1.58 22.27-0.2 41.35-0.79 42.39-1.3 1.04-0.5 2.5-2.16 3.25-3.67 0.75-1.51 1.13-3.2 0.86-3.75-0.27-0.55 0.23-2.46 1.12-4.25 0.89-1.79 2.43-4.15 3.44-5.25 1-1.1 1.9-2.45 2-3 0.1-0.55 0.52-1.9 0.93-3 0.41-1.1 1.5-2.68 2.42-3.5 0.93-0.82 1.66-2.29 1.63-3.25-0.02-0.96 1.51-3.21 3.41-5 1.9-1.79 3.25-3.59 3-4-0.25-0.41 0.34-1.7 1.3-2.87 0.96-1.16 1.76-3.07 1.78-4.25 0.02-1.17 0.44-2.81 0.95-3.63 0.51-0.82 1.07-2.85 1.25-4.5 0.18-1.65 0.75-3.45 1.26-4 0.57-0.62 0.56-1.67-0.03-2.75-0.54-0.99-0.6-2.51-0.12-3.5 0.46-0.96 0.8-5.45 0.75-9.97-0.08-7.16-0.39-8.52-2.37-10.5l-2.27-2.28c-86.32-0.46-109.27-0.97-110.45-1.54-1.1-0.53-2.79-2.54-3.75-4.46-0.97-1.93-1.75-5.74-1.75-8.5 0-2.75 0.59-6.46 1.31-8.25 0.72-1.79 2.41-4.04 3.75-5.01 2.27-1.63 6.74-1.75 62.44-1.7 53.58 0.04 60.16-0.12 61.5-1.54 0.82-0.87 1.05-1.58 0.5-1.57-0.55 0-0.21-0.43 0.75-0.96 1.27-0.7 1.61-1.79 1.25-3.97-0.27-1.65-0.05-3.22 0.5-3.5 0.55-0.28 0.77-0.95 0.5-1.5-0.27-0.55-0.7-2.46-0.94-4.25-0.25-1.79-0.06-3.7 0.41-4.25 0.47-0.55 0.9-2.13 0.96-3.5 0.06-1.38 0.3-7 0.55-12.5 0.24-5.5 0.63-11.8 0.85-14 0.23-2.2-0.09-4.99-0.71-6.2-0.83-1.63-0.83-2.53 0.02-3.5 0.63-0.72 1.19-3.33 1.24-5.8 0.05-2.47 0.31-4.72 0.56-5 0.26-0.28 0.04-1.51-0.49-2.75-0.62-1.46-0.6-2.43 0.05-2.75q1-0.5 0-2-0.99-1.5-0.01-2.75c0.55-0.69 0.66-1.62 0.25-2.08-0.41-0.46-0.74-1.81-0.74-3 0-1.8-0.76-2.28-4.5-2.84-2.48-0.38-69.3-0.67-148.5-0.66-81.73 0.02-145.62 0.42-147.75 0.93-2.06 0.5-5.44 1.75-7.5 2.78zm532.99 184.12c-2.16 4.31-2.26 5.54-2.24 29 0.02 17.4-0.42 27.04-1.49 33.25-0.83 4.81-2.47 11.56-3.65 15-1.18 3.44-3.83 9.62-5.88 13.75-2.06 4.12-6.42 11.1-9.68 15.5-3.27 4.4-9.28 11.08-13.37 14.85-4.09 3.77-10.58 8.94-14.43 11.48-3.85 2.55-10.83 6.27-15.5 8.28-4.67 2.01-11.88 4.57-16 5.7-4.13 1.13-11.77 2.59-17 3.24-5.43 0.69-13.36 0.93-18.5 0.57-4.95-0.34-13.5-1.72-19-3.05-5.5-1.33-13.6-3.93-18-5.77-4.4-1.84-12.05-6.04-17-9.32-4.95-3.28-12.4-9.35-16.54-13.47-4.15-4.13-9.62-10.44-12.15-14.01-2.53-3.57-6.39-10.1-8.58-14.5-2.19-4.4-4.93-10.93-6.1-14.5-1.16-3.57-2.61-8.75-3.21-11.5-0.61-2.75-1.4-17.86-1.76-33.58-0.65-28.35-0.68-28.6-3.16-32.19-1.38-1.99-3.96-4.32-5.75-5.17-1.79-0.86-4.83-1.56-6.75-1.56-1.93 0-5.08 0.68-7 1.5-2.02 0.86-4.66 3.27-6.25 5.68l-2.75 4.18c0.12 52.09 0.37 56.3 2.35 65.64 1.22 5.77 3.16 13.43 4.3 17 1.15 3.57 4.23 11 6.85 16.5 2.62 5.5 7.63 14.27 11.13 19.48 3.5 5.21 9.97 13.26 14.37 17.88 4.4 4.62 11.82 11.26 16.5 14.75 4.67 3.5 12.77 8.57 18 11.28 5.23 2.71 13.32 6.26 18 7.89 4.67 1.63 12.77 3.73 18 4.67 5.23 0.93 10.51 1.89 11.75 2.13l2.25 0.42v66c-52.86 0-59.57 0.29-61.75 1.4-1.51 0.78-3.73 2.47-4.93 3.75-1.2 1.29-2.72 3.7-3.37 5.35-0.64 1.65-1.24 4.5-1.31 6.34-0.08 1.83 0.2 3.52 0.61 3.75 0.41 0.22 0.52 0.86 0.25 1.41-0.27 0.55 0.17 1.67 1 2.5 0.82 0.83 1.39 1.7 1.25 1.95-0.14 0.24 1.55 1.8 3.75 3.45l4 3.02 154 0.06c6.04-3.47 8.63-6.06 9.65-7.98 1.06-2 1.86-5.54 1.85-8.25 0-2.61-0.79-6.39-1.75-8.39-1.03-2.14-3.4-4.61-5.75-5.98-3.95-2.31-4.39-2.34-33.75-2.36-23.14-0.02-29.74-0.3-29.72-1.27 0.02-0.69-0.09-15.53-0.25-32.98l-0.28-31.72c6.98-0.95 13.73-2.26 19.5-3.52 5.77-1.26 14.55-3.96 19.5-5.99 4.95-2.03 11.02-4.84 13.5-6.24 2.48-1.4 7.42-4.48 11-6.85 3.58-2.38 10.1-7.43 14.5-11.23 4.4-3.8 10.76-10.24 14.14-14.32 3.38-4.07 8.68-11.45 11.78-16.4 3.11-4.95 7.62-13.73 10.03-19.5 2.41-5.77 5.65-15.9 7.19-22.5 2.75-11.73 2.81-12.68 2.84-42l0.02-30c-4.03-6.34-6.56-8.57-9-9.67-2.2-0.98-5.13-1.8-6.5-1.82-1.38-0.01-4.52 0.99-7 2.23-3.32 1.67-5.09 3.44-6.76 6.76zm-403.59-116h4.68c3.67 0 5.34 0.59 7.79 2.75 2.69 2.37 3.19 3.58 4.05 14.75l-30.34 30.32c-16.68 16.68-31.57 30.97-33.08 31.75-1.51 0.79-4.66 1.42-7 1.4-4.15-0.03-4.64-0.41-21-16.75-16.4-16.38-16.74-16.81-16.75-20.97 0-2.34 0.79-5.58 1.75-7.21 0.96-1.64 2.99-3.66 4.5-4.5 1.51-0.85 3.65-1.54 4.75-1.54 1.1 0 3.24 0.64 4.75 1.43 1.51 0.79 7.25 5.96 22.75 21.55zm0 119l4.42-0.01c2.44 0 5.44 0.67 6.68 1.5 1.23 0.83 2.92 2.86 3.75 4.51 0.82 1.65 1.49 4.69 1.48 6.75-0.01 3.58-1.41 5.16-30.75 34.57-16.9 16.95-31.97 31.46-33.48 32.25-1.52 0.79-3.88 1.43-5.25 1.43-1.38 0-3.74-0.64-5.25-1.41-1.52-0.78-9.6-8.31-33.17-32.09l-0.04-5.25c-0.04-4.65 0.35-5.65 3.36-8.75 2.79-2.88 4.12-3.5 7.5-3.5 3.87 0 4.74 0.62 27.6 22.89zm5.34 117.03c1.38-0.05 3.74 0.82 5.25 1.94 1.51 1.12 3.43 3.38 4.25 5.03 0.83 1.65 1.49 4.69 1.48 6.75-0.01 3.55-1.21 4.95-21.75 25.5-11.95 11.95-26.57 26.24-32.48 31.75-10.51 9.78-10.85 10-20.25 9.95l-16.75-16.73c-16.4-16.38-16.74-16.8-16.75-20.97 0-2.34 0.79-5.59 1.75-7.23 0.96-1.63 2.76-3.43 4-4 1.24-0.56 3.94-1 6-0.99 3.43 0.03 4.72 1 14.99 11.25 6.18 6.17 11.43 11 11.67 10.72 0.24-0.27 11.95-11.86 26.01-25.75 14.07-13.89 26.59-25.67 27.83-26.18 1.24-0.52 3.38-0.99 4.75-1.04z"/>
+                    </svg>
+                    Speak2Me
+                    <span class="status-badge running">
+                        <span class="status-dot"></span>
+                        Running
+                    </span>
+                </div>
+            </div>
+
+            <div class="system-stats">
+                <div class="stat-item">
+                    <div class="mini-gauge">
+                        <svg width="40" height="40">
+                            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--bg-tertiary)" stroke-width="4"/>
+                            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent-blue)" stroke-width="4" 
+                                    stroke-dasharray="100" stroke-dashoffset="22" stroke-linecap="round"/>
+                        </svg>
+                        <div class="mini-gauge-text">78%</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--text-tertiary);">CPU</div>
+                        <div style="font-size: 10px; color: var(--text-tertiary);">68°C</div>
+                    </div>
+                </div>
+
+                <div class="stat-item">
+                    <div class="mini-gauge">
+                        <svg width="40" height="40">
+                            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--bg-tertiary)" stroke-width="4"/>
+                            <circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent-success)" stroke-width="4" 
+                                    stroke-dasharray="100" stroke-dashoffset="58" stroke-linecap="round"/>
+                        </svg>
+                        <div class="mini-gauge-text">42%</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 11px; color: var(--text-tertiary);">RAM</div>
+                        <div style="font-size: 10px; color: var(--text-tertiary);">6.7/16GB</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connection-status">
+                <button class="icon-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                </button>
+                <button class="icon-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/>
+                    </svg>
+                </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="status-dot" style="background: var(--accent-success);"></div>
+                    <span style="font-size: 13px; color: var(--text-secondary);">Connected</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Mobile Overlay -->
+            <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="nav-items">
+                    <div class="nav-item active" onclick="switchView('dashboard')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                        </span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" onclick="switchView('chat')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </span>
+                        <span>Chat</span>
+                    </div>
+                    <div class="nav-item" onclick="switchView('tasks')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 11 12 14 22 4"/>
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                            </svg>
+                        </span>
+                        <span>Tasks</span>
+                    </div>
+                    <div class="nav-item" onclick="switchView('project')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </span>
+                        <span>Project</span>
+                    </div>
+                    <div class="nav-item" onclick="switchView('logs')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                                <polyline points="10 9 9 9 8 9"/>
+                            </svg>
+                        </span>
+                        <span>Logs</span>
+                    </div>
+                    <div class="nav-item" onclick="switchView('notes')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="16" y1="13" x2="8" y2="13"/>
+                                <line x1="16" y1="17" x2="8" y2="17"/>
+                            </svg>
+                        </span>
+                        <span>Notes</span>
+                    </div>
+                    <div class="nav-item" onclick="switchView('settings')">
+                        <span class="nav-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/>
+                            </svg>
+                        </span>
+                        <span>Settings</span>
+                    </div>
+                </div>
+
+                <div class="conversations-list">
+                    <div class="conversations-header">Recent Conversations</div>
+                    <div class="conversation-item active">Project Setup</div>
+                    <div class="conversation-item">API Design</div>
+                    <div class="conversation-item">Bug Fixes</div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 8px;">+ New</button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Dashboard View -->
+                <div id="dashboard" class="view-container active">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Dashboard</h2>
+
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Project Overview</div>
+                            </div>
+                            <div style="color: var(--text-secondary); margin-bottom: 16px;">
+                                <div style="margin-bottom: 8px;">Status: <span style="color: var(--accent-success);">● Running</span></div>
+                                <div style="margin-bottom: 8px;">Uptime: 2h 34m</div>
+                                <div style="margin-bottom: 8px;">Dev Server: <a href="#" style="color: var(--accent-blue);">http://localhost:3000</a></div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary">Stop</button>
+                                <button class="btn btn-secondary">Restart</button>
+                                <button class="btn btn-primary">Build</button>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">System Health</div>
+                            </div>
+                            <div class="stat-grid">
+                                <div class="stat-box">
+                                    <div class="stat-value">78%</div>
+                                    <div class="stat-label">CPU</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">42%</div>
+                                    <div class="stat-label">Memory</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value">51%</div>
+                                    <div class="stat-label">Disk</div>
+                                </div>
+                                <div class="stat-box">
+                                    <div class="stat-value" style="font-size: 16px;">45kb/s</div>
+                                    <div class="stat-label">Network</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Quick Stats</div>
+                        </div>
+                        <div class="stat-grid">
+                            <div class="stat-box">
+                                <div class="stat-value">15</div>
+                                <div class="stat-label">Tasks Active</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">156</div>
+                                <div class="stat-label">Messages Today</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">23m</div>
+                                <div class="stat-label">Voice Recording</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <div class="card-title">Recent Activity</div>
+                        </div>
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="9 11 12 14 22 4"/>
+                                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Claude created task: "Implement authentication"</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-success);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Dev server restarted</div>
+                                    <div class="activity-time">5 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: rgba(139, 92, 246, 0.2); color: var(--accent-purple);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="20 6 9 17 4 12"/>
+                                    </svg>
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Build completed (2.3s)</div>
+                                    <div class="activity-time">8 minutes ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat View -->
+                <div id="chat" class="view-container">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <h2 style="font-size: 24px;">Conversation: Project Setup</h2>
+                            <div style="display: flex; gap: 12px;">
+                                <button class="btn btn-secondary">Export</button>
+                                <button class="btn btn-secondary">Clear</button>
+                            </div>
+                        </div>
+
+                        <div class="messages-container">
+                            <div class="message user">
+                                <div class="message-avatar">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                    </svg>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-header">
+                                        <div class="message-author">You</div>
+                                        <div class="message-time">2:34 PM</div>
+                                    </div>
+                                    <div class="message-text">
+                                        How do I set up authentication?
+                                    </div>
+                                    <div class="audio-player">
+                                        <button class="play-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <polygon points="5 3 19 12 5 21 5 3"/>
+                                            </svg>
+                                        </button>
+                                        <div class="waveform">
+                                            <div class="waveform-bar" style="height: 40%;"></div>
+                                            <div class="waveform-bar" style="height: 60%;"></div>
+                                            <div class="waveform-bar" style="height: 80%;"></div>
+                                            <div class="waveform-bar" style="height: 50%;"></div>
+                                            <div class="waveform-bar" style="height: 70%;"></div>
+                                            <div class="waveform-bar" style="height: 90%;"></div>
+                                            <div class="waveform-bar" style="height: 60%;"></div>
+                                            <div class="waveform-bar" style="height: 40%;"></div>
+                                        </div>
+                                        <div class="audio-duration">0:23</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="message">
+                                <div class="message-avatar">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM7.5 11.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5zM16 17H8v-2h8v2zm-1-4c-.83 0-1.5-.67-1.5-1.5S14.17 10 15 10s1.5.67 1.5 1.5S15.83 13 15 13z"/>
+                                    </svg>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-header">
+                                        <div class="message-author">Claude</div>
+                                        <div class="message-time">2:34 PM</div>
+                                    </div>
+                                    <div class="message-text">
+                                        I'll help you set up authentication. First, let's install the necessary packages and configure JWT middleware. I'll create a few tasks to break this down into manageable steps.
+                                    </div>
+                                    <div class="audio-player">
+                                        <button class="play-btn">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <polygon points="5 3 19 12 5 21 5 3"/>
+                                            </svg>
+                                        </button>
+                                        <div class="waveform">
+                                            <div class="waveform-bar" style="height: 30%;"></div>
+                                            <div class="waveform-bar" style="height: 50%;"></div>
+                                            <div class="waveform-bar" style="height: 70%;"></div>
+                                            <div class="waveform-bar" style="height: 85%;"></div>
+                                            <div class="waveform-bar" style="height: 95%;"></div>
+                                            <div class="waveform-bar" style="height: 80%;"></div>
+                                            <div class="waveform-bar" style="height: 60%;"></div>
+                                            <div class="waveform-bar" style="height: 40%;"></div>
+                                        </div>
+                                        <div class="audio-duration">1:45</div>
+                                    </div>
+                                    <div style="margin-top: 12px; padding: 12px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; font-size: 13px;">
+                                        <div style="color: var(--accent-purple); font-weight: 600; margin-bottom: 4px;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                                <polyline points="9 11 12 14 22 4"/>
+                                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                            </svg>
+                                            Created Tasks:
+                                        </div>
+                                        <div style="color: var(--text-secondary);">• Install auth dependencies</div>
+                                        <div style="color: var(--text-secondary);">• Configure JWT middleware</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="message user">
+                                <div class="message-avatar">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                                    </svg>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-header">
+                                        <div class="message-author">You</div>
+                                        <div class="message-time">2:36 PM</div>
+                                    </div>
+                                    <div class="message-text">
+                                        Great! Let's start with installing the packages.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks View -->
+                <div id="tasks" class="view-container">
+                    <div class="view-header">
+                        <h2 style="font-size: 24px;">Tasks</h2>
+                        <div class="view-header-actions">
+                            <select class="select">
+                                <option>Filter: All</option>
+                                <option>High Priority</option>
+                                <option>In Progress</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="showModal('newTask')">+ New Task</button>
+                        </div>
+                    </div>
+
+                    <div class="kanban-board">
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">Backlog</div>
+                                <div class="column-count">12</div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-medium">MEDIUM</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#api</span>
+                                        <span class="tag">#backend</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Design API endpoints</div>
+                                <div class="task-description">Create RESTful endpoints for user management</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        Unassigned
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        0
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-low">LOW</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#docs</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Update README</div>
+                                <div class="task-description">Add installation instructions and usage examples</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        Claude
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        2
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">In Progress</div>
+                                <div class="column-count">3</div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-high">HIGH</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#auth</span>
+                                        <span class="tag">#security</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Implement JWT authentication</div>
+                                <div class="task-description">Set up JWT middleware and token generation</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        You
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        5
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-medium">MEDIUM</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#ui</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Build login form</div>
+                                <div class="task-description">Create responsive login UI with validation</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        Claude
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                        3
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">Blocked</div>
+                                <div class="column-count">1</div>
+                            </div>
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-high">HIGH</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#bug</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Fix session persistence</div>
+                                <div class="task-description">Sessions not persisting after refresh. Waiting on DB migration.</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                            <circle cx="12" cy="7" r="4"/>
+                                        </svg>
+                                        You
+                                    </span>
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <circle cx="12" cy="12" r="10"/>
+                                            <line x1="12" y1="16" x2="12" y2="12"/>
+                                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                        </svg>
+                                        Blocked
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <div class="column-title">Completed</div>
+                                <div class="column-count">45</div>
+                            </div>
+                            <div class="task-card" style="opacity: 0.6;">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-high">HIGH</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#setup</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Initialize project</div>
+                                <div class="task-description">Set up project structure and dependencies</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        2 days ago
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="task-card" style="opacity: 0.6;">
+                                <div class="task-header">
+                                    <span class="priority-badge priority-medium">MEDIUM</span>
+                                    <div class="task-tags">
+                                        <span class="tag">#db</span>
+                                    </div>
+                                </div>
+                                <div class="task-title">Set up database</div>
+                                <div class="task-description">Configure Prisma and create initial schema</div>
+                                <div class="task-footer">
+                                    <span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle; margin-right: 4px;">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        1 day ago
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project View -->
+                <div id="project" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Project Controls</h2>
+
+                    <div class="process-grid">
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Dev Server</div>
+                                <div class="process-status">
+                                    <span class="status-dot" style="background: var(--accent-success);"></span>
+                                    Running (2h 34m)
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                http://localhost:3000
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-secondary">Stop</button>
+                                <button class="btn btn-secondary">Restart</button>
+                                <button class="btn btn-secondary">Logs</button>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Build</div>
+                                <div class="process-status" style="color: var(--text-tertiary);">
+                                    <span class="status-dot" style="background: var(--text-tertiary); animation: none;"></span>
+                                    Not Running
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                Last: 5m ago (2.3s) âœ"
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary">Build</button>
+                                <button class="btn btn-secondary">Build & Deploy</button>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Test Runner</div>
+                                <div class="process-status" style="color: var(--text-tertiary);">
+                                    <span class="status-dot" style="background: var(--text-tertiary); animation: none;"></span>
+                                    Not Running
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                Last: 12m ago (32 passed)
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary">Run Tests</button>
+                                <button class="btn btn-secondary">Watch</button>
+                            </div>
+                        </div>
+
+                        <div class="process-card">
+                            <div class="process-header">
+                                <div class="process-name">Type Check</div>
+                                <div class="process-status" style="color: var(--text-tertiary);">
+                                    <span class="status-dot" style="background: var(--text-tertiary); animation: none;"></span>
+                                    Not Running
+                                </div>
+                            </div>
+                            <div class="process-info">
+                                Last: Never
+                            </div>
+                            <div class="process-actions">
+                                <button class="btn btn-primary">Type Check</button>
+                                <button class="btn btn-secondary">Watch</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 48px;">
+                        <h2 style="margin-bottom: 24px; font-size: 20px;">System Resources</h2>
+                        <div class="gauge-container">
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-warning)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="69" stroke-linecap="round" 
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">78%</text>
+                            </svg>
+                            <div class="gauge-label">CPU</div>
+                            <div class="gauge-value">4 cores @ 3.2GHz</div>
+                            <div class="gauge-value" style="margin-top: 8px; color: var(--accent-warning);">68°C</div>
+                        </div>
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-success)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="182" stroke-linecap="round"
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">42%</text>
+                            </svg>
+                            <div class="gauge-label">Memory</div>
+                            <div class="gauge-value">6.7 / 16 GB</div>
+                            <div class="gauge-value" style="margin-top: 8px;">Swap: 0 / 8 GB</div>
+                        </div>
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-blue)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="154" stroke-linecap="round"
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">51%</text>
+                            </svg>
+                            <div class="gauge-label">Disk</div>
+                            <div class="gauge-value">256 / 500 GB</div>
+                            <div class="gauge-value" style="margin-top: 8px;">SSD</div>
+                        </div>
+                        <div class="circular-gauge">
+                            <svg class="gauge-svg" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-tertiary)" stroke-width="12"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent-purple)" stroke-width="12" 
+                                        stroke-dasharray="314" stroke-dashoffset="242" stroke-linecap="round"
+                                        style="transform: rotate(-90deg); transform-origin: center;"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="24" fill="var(--text-primary)" font-weight="bold">23%</text>
+                            </svg>
+                            <div class="gauge-label">Network</div>
+                            <div class="gauge-value">↑ 45 kb/s</div>
+                            <div class="gauge-value" style="margin-top: 8px;">↓ 128 kb/s</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs View -->
+                <div id="logs" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Logs</h2>
+
+                    <div class="logs-controls">
+                        <select class="select">
+                            <option>Process: dev-server</option>
+                            <option>Process: build</option>
+                            <option>Process: test</option>
+                        </select>
+                        <select class="select">
+                            <option>Level: All</option>
+                            <option>Level: Error</option>
+                            <option>Level: Warn</option>
+                            <option>Level: Info</option>
+                        </select>
+                        <input type="text" class="search-input" placeholder="Search logs...">
+                        <button class="btn btn-secondary">Clear</button>
+                        <button class="btn btn-secondary">Download</button>
+                    </div>
+
+                    <div class="logs-container">
+                        <div class="log-line">
+                            <span class="log-time">14:23:45</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Server started on http://localhost:3000</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:23:46</span>
+                            <span class="log-level debug">DEBUG</span>
+                            <span class="log-message">Loaded 234 routes</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:23:47</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Connected to database</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:24:12</span>
+                            <span class="log-level warn">WARN</span>
+                            <span class="log-message">Slow query detected (234ms)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:24:45</span>
+                            <span class="log-level error">ERROR</span>
+                            <span class="log-message">Failed to authenticate user</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time"></span>
+                            <span class="log-level"></span>
+                            <span class="log-message" style="padding-left: 20px;">at handleAuth (auth.ts:123)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time"></span>
+                            <span class="log-level"></span>
+                            <span class="log-message" style="padding-left: 20px;">at middleware (index.ts:45)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:03</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Request: GET /api/users</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:03</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Response: 200 (23ms)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:12</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Hot reload triggered</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:13</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Build completed (1.2s)</span>
+                        </div>
+                        <div class="log-line">
+                            <span class="log-time">14:25:14</span>
+                            <span class="log-level info">INFO</span>
+                            <span class="log-message">Server restarted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes View -->
+                <div id="notes" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Notes</h2>
+                    <div class="notes-grid">
+                        <div class="notes-sidebar" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="font-size: 16px;">Notes</h3>
+                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">+ New</button>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div class="conversation-item active">Authentication Strategy</div>
+                                <div class="conversation-item">API Design</div>
+                                <div class="conversation-item">Database Schema</div>
+                                <div class="conversation-item">Architecture Decisions</div>
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h2 style="font-size: 20px;">Authentication Strategy</h2>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-secondary">Edit</button>
+                                    <button class="btn btn-secondary">Delete</button>
+                                </div>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-tertiary); margin-bottom: 24px;">
+                                Created: 2 days ago | Modified: 5m ago
+                            </div>
+                            <div style="color: var(--text-secondary); line-height: 1.6;">
+                                <h3 style="color: var(--text-primary); margin-bottom: 12px;">Decision</h3>
+                                <p style="margin-bottom: 16px;">We decided to use JWT tokens for authentication instead of traditional session-based auth.</p>
+                                
+                                <h3 style="color: var(--text-primary); margin-bottom: 12px;">Options Considered</h3>
+                                <ul style="margin-bottom: 16px; padding-left: 20px;">
+                                    <li>Sessions with Redis</li>
+                                    <li>JWT tokens</li>
+                                    <li>OAuth only</li>
+                                </ul>
+
+                                <h3 style="color: var(--text-primary); margin-bottom: 12px;">Rationale</h3>
+                                <p>JWT provides stateless authentication which is better for scaling horizontally. We can also use it for microservices communication.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings View -->
+                <div id="settings" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Settings</h2>
+
+                    <div style="max-width: 800px;">
+                        <div class="card" style="margin-bottom: 24px;">
+                            <div class="card-header">
+                                <div class="card-title">Audio Settings</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Input Device</label>
+                                <select class="form-input">
+                                    <option>Default Microphone</option>
+                                    <option>Built-in Microphone</option>
+                                    <option>External USB Mic</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">VAD Threshold: <span id="vadValue">0.35</span></label>
+                                <input type="range" min="0" max="1" step="0.05" value="0.35" style="width: 100%;" 
+                                       oninput="document.getElementById('vadValue').textContent = this.value">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Auto-send Delay (seconds)</label>
+                                <input type="number" class="form-input" value="1.5" step="0.1">
+                            </div>
+                        </div>
+
+                        <div class="card" style="margin-bottom: 24px;">
+                            <div class="card-header">
+                                <div class="card-title">API Keys</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">OpenAI API Key</label>
+                                <input type="password" class="form-input" placeholder="sk-...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">ElevenLabs API Key</label>
+                                <input type="password" class="form-input" placeholder="...">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Google Gemini API Key</label>
+                                <input type="password" class="form-input" placeholder="...">
+                            </div>
+                            <button class="btn btn-primary">Save API Keys</button>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">Appearance</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Theme</label>
+                                <select class="form-input">
+                                    <option selected>Dark</option>
+                                    <option>Light</option>
+                                    <option>Auto</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Font Size</label>
+                                <select class="form-input">
+                                    <option>Small</option>
+                                    <option selected>Medium</option>
+                                    <option>Large</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        </div>
+
+        <!-- Bottom Bar - Audio Controls -->
+        <div class="bottom-bar">
+            <div class="volume-meter" id="volumeMeter">
+                <div class="volume-level" id="volumeLevel" style="width: 0%;"></div>
+            </div>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="setMode(this, 'auto')">Auto</button>
+                <button class="mode-btn" onclick="setMode(this, 'manual')">Manual</button>
+                <button class="mode-btn" onclick="setMode(this, 'ptt')">PTT</button>
+            </div>
+
+            <button class="mic-button" id="micButton" onclick="toggleMic()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+            </button>
+
+            <button class="btn btn-primary" style="padding: 10px 20px;">Send</button>
+            <button class="btn btn-secondary" style="padding: 10px 20px;">Cancel</button>
+
+            <div class="audio-status">
+                <span id="audioStatus">Idle - Ready to listen</span>
+            </div>
+
+            <button class="icon-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- New Task Modal -->
+    <div class="modal-overlay" id="newTaskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Create New Task</div>
+                <button class="close-btn" onclick="hideModal('newTask')">Ã—</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Title</label>
+                <input type="text" class="form-input" placeholder="Task title...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea" placeholder="Task description..."></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select class="form-input">
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tags</label>
+                <input type="text" class="form-input" placeholder="#tag1 #tag2">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="hideModal('newTask')">Cancel</button>
+                <button class="btn btn-primary" onclick="createTask()">Create Task</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('mobileOverlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
+
+        // View switching
+        function switchView(viewName) {
+            // Update active view
+            document.querySelectorAll('.view-container').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(viewName).classList.add('active');
+
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+
+            // Close mobile menu on view switch
+            if (window.innerWidth <= 968) {
+                toggleMobileMenu();
+            }
+        }
+
+        // Mode selector
+        function setMode(btn, mode) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('audioStatus').textContent = `Mode: ${mode} - Ready to listen`;
+        }
+
+        // Mic toggle
+        let isRecording = false;
+        function toggleMic() {
+            const btn = document.getElementById('micButton');
+            const status = document.getElementById('audioStatus');
+            
+            isRecording = !isRecording;
+            
+            if (isRecording) {
+                btn.classList.add('recording');
+                btn.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="6" y="6" width="12" height="12" rx="2"/>
+                    </svg>
+                `;
+                status.textContent = 'Recording... (Click to stop)';
+                startVolumeAnimation();
+            } else {
+                btn.classList.remove('recording');
+                btn.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                `;
+                status.textContent = 'Idle - Ready to listen';
+                stopVolumeAnimation();
+            }
+        }
+
+        // Volume meter animation
+        let volumeInterval;
+        function startVolumeAnimation() {
+            volumeInterval = setInterval(() => {
+                const randomVolume = Math.random() * 100;
+                document.getElementById('volumeLevel').style.width = randomVolume + '%';
+            }, 100);
+        }
+
+        function stopVolumeAnimation() {
+            clearInterval(volumeInterval);
+            document.getElementById('volumeLevel').style.width = '0%';
+        }
+
+        // Modal functions
+        function showModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.add('active');
+        }
+
+        function hideModal(modalName) {
+            document.getElementById(modalName + 'Modal').classList.remove('active');
+        }
+
+        // Create task function
+        function createTask() {
+            showToast('âœ" Task created successfully', 'success');
+            hideModal('newTask');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' 
+                ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <polyline points="20 6 9 17 4 12"/>
+                   </svg>`
+                : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                     <circle cx="12" cy="12" r="10"/>
+                     <line x1="12" y1="8" x2="12" y2="12"/>
+                     <line x1="12" y1="16" x2="12.01" y2="16"/>
+                   </svg>`;
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Initialize - show welcome toast
+        setTimeout(() => {
+            showToast('Welcome to Speak2Me!', 'success');
+        }, 500);
+
+        // Audio player simulation
+        document.querySelectorAll('.play-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const isPlaying = this.innerHTML.includes('polygon');
+                if (isPlaying) {
+                    this.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <rect x="6" y="4" width="4" height="16"/>
+                            <rect x="14" y="4" width="4" height="16"/>
+                        </svg>
+                    `;
+                    this.closest('.audio-player').style.background = 'rgba(0, 212, 255, 0.1)';
+                } else {
+                    this.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                    `;
+                    this.closest('.audio-player').style.background = 'var(--bg-tertiary)';
+                }
+            });
+        });
+
+        // Click outside modal to close
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

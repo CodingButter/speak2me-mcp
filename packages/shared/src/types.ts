@@ -30,6 +30,10 @@ import {
   processStatusInputSchema,
   processOutputInputSchema,
   processOutputSchema,
+  mcpServerConfigSchema,
+  claudeConfigSchema,
+  claudeConfigInputSchema,
+  claudeConfigOutputSchema,
 } from "./schemas";
 
 // MCP Tool Types
@@ -67,6 +71,12 @@ export type ProcessStopInput = z.infer<typeof processStopInputSchema>;
 export type ProcessStatusInput = z.infer<typeof processStatusInputSchema>;
 export type ProcessOutputInput = z.infer<typeof processOutputInputSchema>;
 export type ProcessOutput = z.infer<typeof processOutputSchema>;
+
+// Claude Configuration Types
+export type McpServerConfig = z.infer<typeof mcpServerConfigSchema>;
+export type ClaudeConfig = z.infer<typeof claudeConfigSchema>;
+export type ClaudeConfigInput = z.infer<typeof claudeConfigInputSchema>;
+export type ClaudeConfigOutput = z.infer<typeof claudeConfigOutputSchema>;
 
 // API Types
 export type ApiKeys = z.infer<typeof apiKeysSchema>;

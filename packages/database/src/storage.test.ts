@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from "bun:test";
 import { PrismaStorage } from "./storage";
 import { prisma } from "./client";
-import type { Conversation, Message, ApiKeys } from "@stt-mcp/shared";
+import type { Conversation, Message, ApiKeys } from "@s2m-pac/shared";
 
 describe("PrismaStorage", () => {
   let storage: PrismaStorage;
@@ -13,6 +13,7 @@ describe("PrismaStorage", () => {
   afterAll(async () => {
     // Clean up test data
     await prisma.message.deleteMany();
+    await prisma.claudeConfig.deleteMany();
     await prisma.conversation.deleteMany();
     await prisma.apiKey.deleteMany();
     await prisma.$disconnect();
@@ -21,6 +22,7 @@ describe("PrismaStorage", () => {
   beforeEach(async () => {
     // Clean between tests
     await prisma.message.deleteMany();
+    await prisma.claudeConfig.deleteMany();
     await prisma.conversation.deleteMany();
     await prisma.apiKey.deleteMany();
     await prisma.settings.deleteMany();
@@ -227,9 +229,16 @@ describe("PrismaStorage", () => {
       });
     });
 
-    test("returns null for non-existent keys", async () => {
+    test("returns environment variables for non-existent keys", async () => {
       const keys = await storage.getApiKeys("non-existent-conv");
-      expect(keys).toBeNull();
+      // Should return environment variables as fallback
+      // If env vars are set, they will be returned; otherwise null
+      if (process.env.OPENAI_API_KEY || process.env.ELEVENLABS_API_KEY ||
+          process.env.GEMINI_API_KEY || process.env.ANTHROPIC_API_KEY) {
+        expect(keys).not.toBeNull();
+      } else {
+        expect(keys).toBeNull();
+      }
     });
 
     test("sets API keys", async () => {
@@ -268,6 +277,139 @@ describe("PrismaStorage", () => {
       const retrieved = await storage.getApiKeys("keys-test-conv");
       expect(retrieved?.openai).toBe("sk-test");
       expect(retrieved?.elevenlabs).toBeUndefined();
+    });
+  });
+
+  describe("Claude Configuration", () => {
+    beforeEach(async () => {
+      await storage.createConversation({
+        id: "claude-test-conv",
+        name: "Claude Test",
+        messageCount: 0,
+      });
+    });
+
+    test("creates Claude config with default SSML prompt", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        voiceEnabled: true,
+        voiceDirectives: "Speak clearly",
+      });
+
+      const config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config?.systemPromptTemplate).toContain("SSML");
+      expect(config?.systemPromptTemplate).toContain("{{voiceDirectives}}");
+      expect(config?.voiceEnabled).toBe(true);
+      expect(config?.voiceDirectives).toBe("Speak clearly");
+    });
+
+    test("creates Claude config with custom system prompt", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        systemPromptTemplate: "You are a helpful assistant. {{custom}}",
+        templateVars: { custom: "Test value" },
+      });
+
+      const config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config?.systemPromptTemplate).toBe("You are a helpful assistant. {{custom}}");
+      expect(config?.templateVars).toEqual({ custom: "Test value" });
+    });
+
+    test("handles MCP server configuration", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        mcpServers: {
+          filesystem: {
+            type: "stdio",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+          },
+          github: {
+            type: "stdio",
+            command: "npx",
+            args: ["-y", "@modelcontextprotocol/server-github"],
+            env: { GITHUB_TOKEN: "test-token" },
+          },
+        },
+      });
+
+      const config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config?.mcpServers).toBeDefined();
+      expect(config?.mcpServers?.filesystem).toBeDefined();
+      expect(config?.mcpServers?.filesystem.command).toBe("npx");
+      expect(config?.mcpServers?.github.env?.GITHUB_TOKEN).toBe("test-token");
+    });
+
+    test("handles tool configuration", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        allowedTools: ["Read", "Write", "Grep"],
+        disallowedTools: ["WebSearch", "TodoWrite"],
+      });
+
+      const config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config?.allowedTools).toEqual(["Read", "Write", "Grep"]);
+      expect(config?.disallowedTools).toEqual(["WebSearch", "TodoWrite"]);
+    });
+
+    test("updates existing Claude config", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        model: "claude-sonnet-4-5-20250929",
+        maxTurns: 10,
+      });
+
+      await storage.setClaudeConfig("claude-test-conv", {
+        model: "claude-opus-4-1-20250805",
+        maxTurns: 20,
+        voiceEnabled: true,
+      });
+
+      const config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config?.model).toBe("claude-opus-4-1-20250805");
+      expect(config?.maxTurns).toBe(20);
+      expect(config?.voiceEnabled).toBe(true);
+    });
+
+    test("deletes Claude config", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        voiceEnabled: true,
+      });
+
+      let config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config).toBeDefined();
+
+      await storage.deleteClaudeConfig("claude-test-conv");
+
+      config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config).toBeNull();
+    });
+
+    test("returns null for non-existent config", async () => {
+      const config = await storage.getClaudeConfig("non-existent-conv");
+      expect(config).toBeNull();
+    });
+
+    test("handles all permission modes", async () => {
+      const modes: Array<"default" | "acceptEdits" | "bypassPermissions" | "plan"> = [
+        "default",
+        "acceptEdits",
+        "bypassPermissions",
+        "plan",
+      ];
+
+      for (const mode of modes) {
+        await storage.setClaudeConfig("claude-test-conv", {
+          permissionMode: mode,
+        });
+
+        const config = await storage.getClaudeConfig("claude-test-conv");
+        expect(config?.permissionMode).toBe(mode);
+      }
+    });
+
+    test("handles custom instructions", async () => {
+      await storage.setClaudeConfig("claude-test-conv", {
+        customInstructions: "Always provide detailed explanations with examples.",
+      });
+
+      const config = await storage.getClaudeConfig("claude-test-conv");
+      expect(config?.customInstructions).toBe("Always provide detailed explanations with examples.");
     });
   });
 });

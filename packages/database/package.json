@@ -1,14 +1,17 @@
 {
-  "name": "@stt-mcp/database",
+  "name": "@s2m-pac/database",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./client": "./src/client.ts"
+    "./client": "./src/client.ts",
+    "./prisma": "./src/generated/client/index.d.ts"
   },
   "scripts": {
+    "dev": "bun build.ts --watch",
+    "build": "bun build.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "typecheck": "tsc --noEmit",
@@ -20,11 +23,11 @@
   "dependencies": {
     "@elysiajs/cors": "^1.4.0",
     "@prisma/client": "^6.2.0",
-    "@stt-mcp/shared": "workspace:*",
+    "@s2m-pac/shared": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@stt-mcp/config": "workspace:*",
+    "@s2m-pac/config": "workspace:*",
     "prisma": "^6.2.0",
     "typescript": "^5.4.5"
   }

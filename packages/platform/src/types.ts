@@ -1,4 +1,4 @@
-import type { ApiKeys, Conversation, Message, Settings } from "@stt-mcp/shared";
+import type { ApiKeys, Conversation, Message, Settings } from "@s2m-pac/shared";
 
 /**
  * Platform Interface

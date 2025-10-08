@@ -1,0 +1,37 @@
+{
+  "name": "@s2m-pac/claude-agent",
+  "version": "0.1.9-s2m",
+  "private": true,
+  "type": "module",
+  "main": "./src/sdk.mjs",
+  "types": "./src/sdk.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/sdk.d.ts",
+      "default": "./src/sdk.mjs"
+    },
+    "./tools": {
+      "types": "./src/sdk-tools.d.ts"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "description": "Modified Claude Agent SDK for Speak2Me with API key injection support",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "optionalDependencies": {
+    "@img/sharp-darwin-arm64": "^0.33.5",
+    "@img/sharp-darwin-x64": "^0.33.5",
+    "@img/sharp-linux-arm": "^0.33.5",
+    "@img/sharp-linux-arm64": "^0.33.5",
+    "@img/sharp-linux-x64": "^0.33.5",
+    "@img/sharp-win32-x64": "^0.33.5"
+  },
+  "devDependencies": {
+    "@s2m-pac/config": "workspace:*",
+    "typescript": "^5.4.5"
+  }
+}

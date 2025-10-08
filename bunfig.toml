@@ -1,0 +1,4 @@
+# Bun workspace configuration
+[install]
+# Link workspace packages from monorepo root to node_modules
+linkWorkspacePackages = true

@@ -1,0 +1,45 @@
+                <div id="notes" class="view-container">
+                    <h2 style="margin-bottom: 24px; font-size: 24px;">Notes</h2>
+                    <div class="notes-grid">
+                        <div class="notes-sidebar" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="font-size: 16px;">Notes</h3>
+                                <button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">+ New</button>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <div class="conversation-item active">Authentication Strategy</div>
+                                <div class="conversation-item">API Design</div>
+                                <div class="conversation-item">Database Schema</div>
+                                <div class="conversation-item">Architecture Decisions</div>
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h2 style="font-size: 20px;">Authentication Strategy</h2>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-secondary">Edit</button>
+                                    <button class="btn btn-secondary">Delete</button>
+                                </div>
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-tertiary); margin-bottom: 24px;">
+                                Created: 2 days ago | Modified: 5m ago
+                            </div>
+                            <div style="color: var(--text-secondary); line-height: 1.6;">
+                                <h3 style="color: var(--text-primary); margin-bottom: 12px;">Decision</h3>
+                                <p style="margin-bottom: 16px;">We decided to use JWT tokens for authentication instead of traditional session-based auth.</p>
+                                
+                                <h3 style="color: var(--text-primary); margin-bottom: 12px;">Options Considered</h3>
+                                <ul style="margin-bottom: 16px; padding-left: 20px;">
+                                    <li>Sessions with Redis</li>
+                                    <li>JWT tokens</li>
+                                    <li>OAuth only</li>
+                                </ul>
+
+                                <h3 style="color: var(--text-primary); margin-bottom: 12px;">Rationale</h3>
+                                <p>JWT provides stateless authentication which is better for scaling horizontally. We can also use it for microservices communication.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings View -->

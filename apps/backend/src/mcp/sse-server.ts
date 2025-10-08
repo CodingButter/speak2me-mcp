@@ -2,8 +2,8 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { Stream } from "@elysiajs/stream";
 import type { Context } from "elysia";
-import type { CoreOperations, SessionManager } from "@stt-mcp/core";
-import { ProcessManager } from "@stt-mcp/core";
+import type { CoreOperations, SessionManager } from "@s2m-pac/core";
+import { ProcessManager } from "@s2m-pac/core";
 import {
   handleSpeak,
   handleListen,
@@ -20,8 +20,8 @@ import {
   handleProcessStop,
   handleProcessStatus,
   handleProcessOutput,
-} from "@stt-mcp/core/mcp";
-import { prisma } from "@stt-mcp/database";
+} from "@s2m-pac/core/mcp";
+import { prisma } from "@s2m-pac/database";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -40,7 +40,7 @@ import {
   processStopInputSchema,
   processStatusInputSchema,
   processOutputInputSchema,
-} from "@stt-mcp/shared";
+} from "@s2m-pac/shared";
 
 /**
  * Create SSE MCP Server for a conversation
