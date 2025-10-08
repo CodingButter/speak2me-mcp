@@ -1,0 +1,124 @@
+name: "Sync Project Status to Issue Labels"
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync-status:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Sync project status to issue labels
+        run: |
+          # Project details
+          PROJECT_ID="PVT_kwHOAJyrsc4BFFPI"
+          STATUS_FIELD_ID="PVTSSF_lAHOAJyrsc4BFFPIzg2hb3I"
+          REPO_OWNER="CodingButter"
+          REPO_NAME="speak2me-mcp"
+
+          echo "Querying project items..."
+
+          # Query all project items with their status field
+          ITEMS=$(gh api graphql -f query='
+            query($projectId: ID!) {
+              node(id: $projectId) {
+                ... on ProjectV2 {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      fieldValues(first: 20) {
+                        nodes {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                            field {
+                              ... on ProjectV2FieldCommon {
+                                id
+                                name
+                              }
+                            }
+                          }
+                        }
+                      }
+                      content {
+                        ... on Issue {
+                          number
+                          labels(first: 10) {
+                            nodes {
+                              name
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f projectId="$PROJECT_ID")
+
+          echo "Processing project items..."
+
+          # Process each item
+          echo "$ITEMS" | jq -r '.data.node.items.nodes[] | select(.content.number != null) | @json' | while read -r item; do
+            ISSUE_NUMBER=$(echo "$item" | jq -r '.content.number')
+
+            # Get the status field value
+            STATUS=$(echo "$item" | jq -r --arg fieldId "$STATUS_FIELD_ID" '
+              .fieldValues.nodes[] |
+              select(.field.id == $fieldId) |
+              .name // "No Status"
+            ')
+
+            # Get current issue labels
+            CURRENT_LABELS=$(echo "$item" | jq -r '.content.labels.nodes[].name' | tr '\n' ',' | sed 's/,$//')
+
+            echo "Issue #$ISSUE_NUMBER - Status: $STATUS"
+
+            # Map project status to label
+            case "$STATUS" in
+              "Backlog")
+                DESIRED_LABEL="status: backlog"
+                ;;
+              "In Progress")
+                DESIRED_LABEL="status: in-progress"
+                ;;
+              "Done")
+                DESIRED_LABEL="status: done"
+                ;;
+              "Todo")
+                DESIRED_LABEL="status: todo"
+                ;;
+              *)
+                echo "  Unknown status, skipping"
+                continue
+                ;;
+            esac
+
+            # Remove old status labels
+            for old_label in "status: backlog" "status: in-progress" "status: done" "status: todo"; do
+              if echo "$CURRENT_LABELS" | grep -q "$old_label"; then
+                if [ "$old_label" != "$DESIRED_LABEL" ]; then
+                  echo "  Removing label: $old_label"
+                  gh issue edit "$ISSUE_NUMBER" --repo "$REPO_OWNER/$REPO_NAME" --remove-label "$old_label" 2>/dev/null || true
+                fi
+              fi
+            done
+
+            # Add new status label if not present
+            if ! echo "$CURRENT_LABELS" | grep -q "$DESIRED_LABEL"; then
+              echo "  Adding label: $DESIRED_LABEL"
+              gh issue edit "$ISSUE_NUMBER" --repo "$REPO_OWNER/$REPO_NAME" --add-label "$DESIRED_LABEL" 2>/dev/null || true
+            else
+              echo "  Label already correct"
+            fi
+          done
+
+          echo "Sync complete!"
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
