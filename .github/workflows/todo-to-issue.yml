@@ -46,3 +46,89 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  add-to-project:
+    name: Add issues to project
+    runs-on: ubuntu-latest
+    needs: create-issues
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Add new TODO issues to project
+        uses: actions/add-to-project@v0.5.0
+        with:
+          project-url: https://github.com/users/CodingButter/projects/11
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          labeled: todo
+          label-operator: OR
+
+  update-project-fields:
+    name: Set project field values
+    runs-on: ubuntu-latest
+    needs: add-to-project
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Set status to Backlog for new issues
+        run: |
+          # Get recently created issues with 'todo' label
+          ISSUES=$(gh issue list --repo ${{ github.repository }} --label todo --state open --limit 50 --json number,createdAt --jq '.[] | select((.createdAt | fromdateiso8601) > (now - 300)) | .number')
+
+          # Project details
+          PROJECT_ID="PVT_kwHOAJyrsc4BFFPI"
+          STATUS_FIELD_ID="PVTSSF_lAHOAJyrsc4BFFPIzg2hb3I"
+          BACKLOG_OPTION_ID="f75ad846"
+
+          for issue_number in $ISSUES; do
+            echo "Processing issue #$issue_number"
+
+            # Get the issue's project item ID
+            ITEM_ID=$(gh api graphql -f query='
+              query($owner: String!, $repo: String!, $number: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  issue(number: $number) {
+                    projectItems(first: 10) {
+                      nodes {
+                        id
+                        project {
+                          id
+                        }
+                      }
+                    }
+                  }
+                }
+              }' -f owner='CodingButter' -f repo='speak2me-mcp' -F number=$issue_number --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id == \"$PROJECT_ID\") | .id")
+
+            if [ -n "$ITEM_ID" ]; then
+              echo "Found project item ID: $ITEM_ID"
+
+              # Set status to Backlog
+              gh api graphql -f query='
+                mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
+                  updateProjectV2ItemFieldValue(
+                    input: {
+                      projectId: $projectId
+                      itemId: $itemId
+                      fieldId: $fieldId
+                      value: { singleSelectOptionId: $value }
+                    }
+                  ) {
+                    projectV2Item {
+                      id
+                    }
+                  }
+                }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f value="$BACKLOG_OPTION_ID"
+
+              echo "Set issue #$issue_number to Backlog status"
+            else
+              echo "Issue #$issue_number not found in project"
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
