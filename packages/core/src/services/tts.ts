@@ -51,37 +51,28 @@ export async function textToSpeech(
       config.optimizeStreamingLatency ?? DEFAULT_STREAMING_LATENCY;
 
     // Call text-to-speech stream API
-    // Note: Using convertAsStream (older SDK version) instead of stream
+    // Note: Using convertAsStream which returns a Node.js Readable stream
     const audioStream = await client.textToSpeech.convertAsStream(voiceId, {
       text,
-      modelId: model,
-      outputFormat: outputFormat as any,
-      optimizeStreamingLatency,
+      model_id: model,
+      output_format: outputFormat as any,
+      optimize_streaming_latency: optimizeStreamingLatency,
     });
 
-    // Accumulate audio chunks from ReadableStream
+    // Accumulate audio chunks from Node.js Readable stream
     const chunks: Uint8Array[] = [];
     let totalBytes = 0;
 
-    // Get a reader from the stream
-    const reader = audioStream.getReader();
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        // Track time to first byte
-        if (firstByteTime === null) {
-          firstByteTime = performance.now();
-        }
-
-        chunks.push(value);
-        totalBytes += value.length;
+    // Convert Node.js Readable to async iterable
+    for await (const chunk of audioStream) {
+      // Track time to first byte
+      if (firstByteTime === null) {
+        firstByteTime = performance.now();
       }
-    } finally {
-      reader.releaseLock();
+
+      const uint8Chunk = chunk instanceof Uint8Array ? chunk : new Uint8Array(chunk);
+      chunks.push(uint8Chunk);
+      totalBytes += uint8Chunk.length;
     }
 
     // Combine chunks into single ArrayBuffer

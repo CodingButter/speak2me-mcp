@@ -1,0 +1,81 @@
+{
+  "v": 1,
+  "modules": [
+    {
+      "id": "API",
+      "path": ".claude/modules/api.md",
+      "triggers": [
+        "api",
+        "openapi",
+        "endpoint",
+        "cors",
+        "sse",
+        "route"
+      ]
+    },
+    {
+      "id": "FE",
+      "path": ".claude/modules/frontend.md",
+      "triggers": [
+        "react",
+        "vite",
+        "tailwind",
+        "ui",
+        "pwa",
+        "component"
+      ]
+    },
+    {
+      "id": "BE",
+      "path": ".claude/modules/backend.md",
+      "triggers": [
+        "backend",
+        "elysia",
+        "mcp",
+        "sse",
+        "tool",
+        "service"
+      ]
+    },
+    {
+      "id": "SEC",
+      "path": ".claude/modules/security.md",
+      "triggers": [
+        "secrets",
+        "token",
+        "oauth",
+        "csrf",
+        "xss",
+        "csp",
+        "privacy",
+        "pii"
+      ]
+    },
+    {
+      "id": "TODO",
+      "path": ".claude/modules/todo.md",
+      "triggers": [
+        "todo",
+        "fixme",
+        "hack",
+        "bug",
+        "note",
+        "optimize",
+        "issue"
+      ]
+    },
+    {
+      "id": "VMS",
+      "path": ".claude/modules/voice-mcp.md",
+      "triggers": [
+        "mcp",
+        "tts",
+        "stt",
+        "ssml",
+        "voice",
+        "elevenlabs",
+        "gemini"
+      ]
+    }
+  ]
+}
