@@ -3,12 +3,10 @@ name: "TODO to Issue"
 on:
   push:
     branches:
-      - main
-      - develop
+      - '**'  # Trigger on all branches
   pull_request:
     branches:
-      - main
-      - develop
+      - '**'  # Trigger on PRs to all branches
 
 jobs:
   create-issues:
@@ -45,7 +43,7 @@ jobs:
     name: Add issues to project
     runs-on: ubuntu-latest
     needs: create-issues
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'  # Run on all branch pushes
     permissions:
       issues: write
       contents: read
@@ -63,7 +61,7 @@ jobs:
     name: Set project field values
     runs-on: ubuntu-latest
     needs: add-to-project
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'  # Run on all branch pushes
     permissions:
       issues: write
       contents: read
