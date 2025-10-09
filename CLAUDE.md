@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## ⚠️ CRITICAL DEVELOPMENT REQUIREMENT ⚠️
+
+**BEFORE you write ANY code in this project, you MUST read and follow the "TODO-Driven Development Workflow" section below.**
+
+**ALL code development MUST be accompanied by TODO comments. This is not optional.**
+
+Jump to: [TODO-Driven Development Workflow](#-todo-driven-development-workflow-mandatory)
+
+---
+
 ## Project Overview
 
 This is a **Voice MCP Server** monorepo that implements the Model Context Protocol with speech-to-text (STT) and text-to-speech (TTS) capabilities. The system consists of:
@@ -45,15 +57,36 @@ packages/
 - **AI Services**: OpenAI (SSML enhancement), ElevenLabs (TTS), Google Gemini (STT)
 - **Validation**: Zod schemas shared between frontend/backend
 
-## TODO-Driven Development Workflow
+## 🚨 TODO-Driven Development Workflow (MANDATORY)
 
-**⚠️ CRITICAL: TODOs are the PRIMARY way we plan and track work in this project.**
+**🚨 CRITICAL - READ THIS FIRST:**
+
+**TODOs are NOT optional. They are the REQUIRED way we plan, track, and manage ALL work in this project.**
+
+### ⚠️ ABSOLUTE REQUIREMENTS
+
+**YOU MUST use TODO comments during development. This is non-negotiable.**
+
+1. **BEFORE writing ANY code** - Add a comprehensive TODO comment
+2. **BEFORE implementing ANY feature** - Document it with a TODO first
+3. **BEFORE fixing ANY bug** - Create a TODO describing the fix
+4. **BEFORE making ANY placeholder** - Add a TODO explaining what's missing
+
+**If you are developing code, you MUST be creating TODOs. Period.**
+
+### Why This is Critical
+
+- **Automated Issue Tracking**: TODOs automatically become GitHub issues
+- **Project Board Sync**: Work is instantly visible on the project board
+- **Documentation**: Every piece of work is documented in-context
+- **Collaboration**: Team knows what's planned, in-progress, and done
+- **No Lost Work**: Nothing falls through the cracks
+
+**NOT using TODOs means work is invisible, untracked, and will be lost.**
 
 ### The TODO-First Approach
 
-**ALWAYS add TODO comments BEFORE implementing features.** Never create or modify code without first adding comprehensive TODOs that describe what needs to be done.
-
-**Workflow:**
+**Workflow (ALWAYS follow this):**
 1. **Plan with TODOs** - Add detailed TODO comments describing the feature/fix
 2. **Commit TODOs** - Push TODOs to trigger automated issue creation
 3. **Implement** - Write the actual code implementation
@@ -257,11 +290,44 @@ export function DiagnosticsPanel() {
 
 ### TODO Identifiers
 
-The workflow recognizes multiple identifiers:
-- `TODO:` - General tasks and enhancements (label: `todo`)
-- `FIXME:` - Code that works but needs improvement (labels: `bug`, `fixme`)
-- `HACK:` - Temporary workarounds (labels: `tech-debt`, `hack`)
-- `BUG:` - Known bugs that need fixing (labels: `bug`, `todo`)
+The workflow recognizes multiple identifiers with automatic labeling:
+
+- **`TODO:`** - General tasks and enhancements → labels: `todo`
+- **`FIXME:`** - Code that works but needs improvement → labels: `bug`, `fixme`
+- **`HACK:`** - Temporary workarounds → labels: `tech-debt`, `hack`
+- **`BUG:`** - Known bugs that need fixing → labels: `bug`, `todo`
+- **`NOTE:`** - Documentation needed → labels: `documentation`
+- **`OPTIMIZE:`** - Performance improvements → labels: `performance`, `enhancement`
+
+**Examples:**
+
+```typescript
+// TODO: Implement user authentication
+// Creates issue with label: todo
+
+// FIXME: Authentication token refresh is unreliable
+// Creates issue with labels: bug, fixme
+
+// HACK: Temporary workaround for React 18 strict mode double-mounting
+// Creates issue with labels: tech-debt, hack
+
+// BUG: Race condition in WebSocket message handler
+// Creates issue with labels: bug, todo
+
+// NOTE: Document the MCP protocol integration steps
+// Creates issue with label: documentation
+
+// OPTIMIZE: Cache API responses to reduce backend load
+// Creates issue with labels: performance, enhancement
+```
+
+**Use the right identifier:**
+- `TODO` - For new features or general improvements
+- `FIXME` - For code that works but has issues
+- `HACK` - For temporary solutions that need proper fixes
+- `BUG` - For confirmed bugs
+- `NOTE` - For missing documentation
+- `OPTIMIZE` - For performance improvements
 
 ### Monitoring TODOs
 
@@ -284,6 +350,49 @@ gh run list --workflow=todo-to-issue.yml
 ```bash
 gh run list --workflow=sync-project-status.yml
 ```
+
+### Automated Workflow Features
+
+The TODO workflow (`.github/workflows/todo-to-issue.yml`) provides:
+
+**Automatic Issue Creation:**
+- Scans all code changes for TODO comments
+- Creates GitHub issues with proper formatting
+- Inserts issue URLs back into code (`INSERT_ISSUE_URLS: true`)
+- Assigns issues to the commit author (`AUTO_ASSIGN: true`)
+- Closes issues when TODOs are removed (`CLOSE_ISSUES: true`)
+
+**Project Board Integration:**
+- Automatically adds issues to [Project #11](https://github.com/users/CodingButter/projects/11)
+- Sets new issues to "Backlog" status by default
+- Syncs status changes between project board and issue labels
+
+**Multi-Branch Support:**
+- Triggers on ALL branches (not just main)
+- Triggers on pull requests
+- Manual workflow dispatch available
+
+**Smart Labeling:**
+- Extracts labels from TODO comments
+- Applies default labels based on identifier type
+- Supports custom labels per TODO
+
+**Rich Metadata:**
+- Captures file path and line number
+- Records commit author
+- Links to Project Scope sections
+- Tracks assignees and milestones
+
+### 🎯 REMEMBER: Use TODOs ALWAYS
+
+**Every development session should create TODOs:**
+- Starting a new feature? → Add TODOs first
+- Found a bug? → Add a TODO
+- Writing a placeholder? → Add a TODO
+- Missing documentation? → Add a TODO with NOTE identifier
+- Performance issue? → Add a TODO with OPTIMIZE identifier
+
+**The project board is the single source of truth. If it's not a TODO/Issue, it doesn't exist.**
 
 ## Development Commands
 
