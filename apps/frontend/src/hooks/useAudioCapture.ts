@@ -7,9 +7,13 @@ import {
   type AudioProcessorConfig,
   type ProcessedAudio,
 } from "../services/audioProcessor";
+import { SpeechRecognitionService, type TranscriptResult } from "../services/speechRecognition";
+import { alignAudioWithTranscript, type ForcedAlignmentResult } from "../services/forcedAlignment";
 
 export interface AudioCaptureConfig {
   mode: "auto" | "manual" | "ptt";
+  // API Keys
+  elevenlabsApiKey?: string; // For forced alignment
   // Noise gate / VAD settings
   vadThreshold?: number; // 0-1, threshold for speech detection
   minSpeechMs?: number; // Minimum speech duration to consider valid
@@ -21,7 +25,11 @@ export interface AudioCaptureConfig {
   postRollMs?: number; // Buffer after speech ends
   autoSendDelayMs?: number; // Delay before auto-sending in auto mode
   // Callbacks
-  onTranscript?: (transcript: string, processedAudio: ProcessedAudio) => void;
+  onTranscript?: (
+    transcript: string,
+    processedAudio: ProcessedAudio,
+    alignment?: ForcedAlignmentResult
+  ) => void;
   onSpeechStart?: () => void;
   onSpeechEnd?: () => void;
   onVolumeChange?: (volume: number) => void; // For volume meter UI
@@ -64,6 +72,11 @@ export function useAudioCapture(config: AudioCaptureConfig) {
   const speechStartTimeRef = useRef<number | null>(null);
   const autoSendTimerRef = useRef<number | null>(null);
   const countdownIntervalRef = useRef<number | null>(null);
+
+  // Web Speech API refs
+  const speechRecognitionRef = useRef<SpeechRecognitionService | null>(null);
+  const accumulatedTranscriptRef = useRef<string>("");
+  const speechSegmentsRef = useRef<Array<{ startTime: number; endTime: number }>>([]);
 
   // Get config with defaults
   const getConfig = useCallback((): Required<Omit<AudioCaptureConfig, "onTranscript" | "onSpeechStart" | "onSpeechEnd" | "onVolumeChange" | "onAutoSendCountdown">> => {
@@ -116,39 +129,50 @@ export function useAudioCapture(config: AudioCaptureConfig) {
 
     const processed = await processAudio(combinedAudio, cfg.sampleRate, processorConfig);
 
-    // TODO: Integrate with backend STT API
-    // Project Scope: §5.1.2 (listen tool), §7.2.2 (PWA audio upload)
-    // Implementation:
-    // 1. Create API client method: POST /api/audio/upload
-    //    - Send processed.audioBlob to backend
-    //    - Include conversationId in URL or body
-    //    - Include metadata: mode, vadThreshold, minSilenceMs, etc.
-    // 2. Backend stores audio in session buffer or processes immediately
-    // 3. If mode === "auto":
-    //    - Backend automatically calls handleListen → Gemini STT
-    //    - Returns transcript in response
-    //    - Invoke config.onTranscript with transcript
-    // 4. If mode === "manual" or "ptt":
-    //    - Backend buffers audio, waits for user to click Send
-    //    - PWA calls POST /api/conversation/:id/send-audio
-    //    - Backend processes buffered audio → STT
-    //    - Returns transcript
-    // 5. Handle errors:
-    //    - Network errors: Retry with exponential backoff
-    //    - STT errors: Display clear error to user
-    //    - Audio format errors: Log and inform user
-    // 6. Track metrics:
-    //    - Upload time, STT latency, total e2e time
-    //    - Audio size reduction from silence trimming
-    // assignees: codingbutter
-    // labels: enhancement, frontend, voice
-    // milestone: MVP Launch
-    config.onTranscript?.("", processed);
+    // Get the accumulated transcript from Web Speech API
+    const transcript = accumulatedTranscriptRef.current.trim();
+
+    // Step 1: Get word-level timestamps using ElevenLabs Forced Alignment
+    let alignment: ForcedAlignmentResult | undefined;
+
+    if (config.elevenlabsApiKey && transcript) {
+      try {
+        console.log("Starting forced alignment:", {
+          transcriptLength: transcript.length,
+          audioSize: processed.audioBlob.size,
+          audioDuration: processed.trimmedDuration,
+        });
+
+        alignment = await alignAudioWithTranscript(
+          processed.audioBlob,
+          transcript,
+          {
+            apiKey: config.elevenlabsApiKey,
+          }
+        );
+
+        console.log("Forced alignment complete:", {
+          words: alignment.words.length,
+          characters: alignment.characters.length,
+          loss: alignment.loss,
+        });
+      } catch (error) {
+        console.error("Forced alignment failed:", error);
+        // Continue without alignment if it fails
+      }
+    } else if (!transcript) {
+      console.warn("No transcript available for forced alignment");
+    }
+
+    // Invoke callback with transcript, processed audio, and optional alignment
+    config.onTranscript?.(transcript, processed, alignment);
 
     // Clear buffers
     recordedChunksRef.current = [];
     preRollBufferRef.current?.clear();
     speechStartTimeRef.current = null;
+    accumulatedTranscriptRef.current = "";
+    speechSegmentsRef.current = [];
   }, [config, getConfig]);
 
   /**
@@ -212,6 +236,101 @@ export function useAudioCapture(config: AudioCaptureConfig) {
       countdownIntervalRef.current = null;
     }
     setState((prev) => ({ ...prev, autoSendCountdown: null }));
+  }, []);
+
+  /**
+   * Initialize Web Speech API for real-time transcription
+   */
+  const initializeSpeechRecognition = useCallback(() => {
+    if (speechRecognitionRef.current) {
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognitionService({
+        language: "en-US",
+        continuous: true,
+        interimResults: true,
+      });
+
+      recognition.initialize();
+
+      speechRecognitionRef.current = recognition;
+
+      console.log("Web Speech API initialized");
+    } catch (error) {
+      console.error("Failed to initialize Web Speech API:", error);
+      // Continue without speech recognition if it's not supported
+    }
+  }, []);
+
+  /**
+   * Start Web Speech API transcription
+   */
+  const startSpeechRecognition = useCallback(() => {
+    if (!speechRecognitionRef.current) {
+      initializeSpeechRecognition();
+    }
+
+    if (!speechRecognitionRef.current) {
+      console.warn("Web Speech API not available");
+      return;
+    }
+
+    speechRecognitionRef.current.start(
+      (result) => {
+        // Accumulate transcript
+        if (result.isFinal) {
+          accumulatedTranscriptRef.current += (accumulatedTranscriptRef.current ? " " : "") + result.transcript;
+          console.log("Final transcript segment:", result.transcript);
+          console.log("Accumulated transcript:", accumulatedTranscriptRef.current);
+        }
+      },
+      (error) => {
+        console.error("Speech recognition error:", error);
+      },
+      () => {
+        console.log("Speech recognition ended");
+      },
+      () => {
+        // Speech start detected by Web Speech API
+        const startTime = Date.now();
+        console.log("Web Speech API: Speech started at", startTime);
+
+        // If this is the first speech segment, initialize the array
+        if (speechSegmentsRef.current.length === 0 ||
+            speechSegmentsRef.current[speechSegmentsRef.current.length - 1].endTime > 0) {
+          speechSegmentsRef.current.push({ startTime, endTime: 0 });
+        }
+      },
+      () => {
+        // Speech end detected by Web Speech API
+        const endTime = Date.now();
+        console.log("Web Speech API: Speech ended at", endTime);
+
+        // Mark the end time of the current segment
+        if (speechSegmentsRef.current.length > 0) {
+          const currentSegment = speechSegmentsRef.current[speechSegmentsRef.current.length - 1];
+          if (currentSegment.endTime === 0) {
+            currentSegment.endTime = endTime;
+            const duration = endTime - currentSegment.startTime;
+            console.log(`Speech segment duration: ${duration}ms`);
+          }
+        }
+      }
+    );
+
+    console.log("Started Web Speech API transcription");
+  }, [initializeSpeechRecognition]);
+
+  /**
+   * Stop Web Speech API transcription
+   */
+  const stopSpeechRecognition = useCallback(() => {
+    if (speechRecognitionRef.current) {
+      speechRecognitionRef.current.stop();
+      console.log("Stopped Web Speech API transcription");
+    }
   }, []);
 
   /**
@@ -303,25 +422,36 @@ export function useAudioCapture(config: AudioCaptureConfig) {
    * Start listening (auto mode) or recording (manual/ptt modes)
    */
   const start = useCallback(async () => {
+    // Initialize and start VAD for audio capture
     await initializeVAD();
 
     if (vadRef.current) {
       vadRef.current.start();
-      setState((prev) => ({
-        ...prev,
-        isListening: true,
-        isRecording: true,
-      }));
     }
-  }, [initializeVAD]);
+
+    // Start Web Speech API for transcription
+    startSpeechRecognition();
+
+    setState((prev) => ({
+      ...prev,
+      isListening: true,
+      isRecording: true,
+    }));
+
+    console.log("Started audio capture and transcription");
+  }, [initializeVAD, startSpeechRecognition]);
 
   /**
    * Stop listening/recording
    */
   const stop = useCallback(async () => {
+    // Stop VAD
     if (vadRef.current) {
       vadRef.current.pause();
     }
+
+    // Stop Web Speech API
+    stopSpeechRecognition();
 
     // Cancel any pending auto-send
     cancelAutoSendCountdown();
@@ -338,7 +468,9 @@ export function useAudioCapture(config: AudioCaptureConfig) {
       isSpeaking: false,
       currentVolume: 0,
     }));
-  }, [finalizeRecording, cancelAutoSendCountdown]);
+
+    console.log("Stopped audio capture and transcription");
+  }, [finalizeRecording, cancelAutoSendCountdown, stopSpeechRecognition]);
 
   /**
    * Cleanup on unmount
@@ -356,6 +488,10 @@ export function useAudioCapture(config: AudioCaptureConfig) {
       if (audioContextRef.current) {
         audioContextRef.current.close();
         audioContextRef.current = null;
+      }
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.destroy();
+        speechRecognitionRef.current = null;
       }
       if (autoSendTimerRef.current) {
         clearTimeout(autoSendTimerRef.current);

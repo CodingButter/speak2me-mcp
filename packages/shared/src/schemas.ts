@@ -56,6 +56,41 @@ export const apiKeysSchema = z.object({
   anthropic: z.string().optional(),
 });
 
+// TODO: Add alignment field to messageSchema for word-level timestamps
+// Project Scope: §5.2.2 (Audio Playback with Word Highlighting)
+//
+// Implementation steps:
+// 1. Add alignment field to messageSchema:
+//    alignment: z.object({
+//      words: z.array(z.object({
+//        word: z.string(),
+//        start_time: z.number(),
+//        end_time: z.number(),
+//        aligned_word: z.string(),
+//        confidence: z.number()
+//      })),
+//      characters: z.array(z.object({
+//        char: z.string(),
+//        start_time: z.number(),
+//        end_time: z.number()
+//      })),
+//      loss: z.number()
+//    }).optional()
+// 2. Update Prisma schema (packages/database/prisma/schema.prisma):
+//    Add "alignment Json?" field to Message model
+// 3. Generate Prisma client: cd packages/database && bun prisma generate
+// 4. Create migration: bun prisma migrate dev --name add_alignment_to_messages
+// 5. Update message storage in backend to save alignment data
+// 6. Frontend can then use alignment for karaoke-style playback
+//
+// Related files:
+// - apps/frontend/src/services/forcedAlignment.ts (ForcedAlignmentResult type)
+// - apps/frontend/src/hooks/useAudioCapture.ts (returns alignment in onTranscript)
+// - packages/database/src/storage.ts (saveMessage method)
+//
+// assignees: codingbutter
+// labels: enhancement, backend, voice
+// milestone: MVP Launch
 export const messageSchema = z.object({
   id: z.string(),
   conversationId: z.string(),

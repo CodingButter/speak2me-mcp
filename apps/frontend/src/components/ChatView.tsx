@@ -98,6 +98,37 @@ export function ChatView({ messages, onPlayAudio }: ChatViewProps) {
               <p className="whitespace-pre-wrap break-words">{message.content}</p>
 
               {/* Audio player */}
+              {/* TODO: Implement word-highlight karaoke-style audio playback */}
+              {/* Project Scope: §5.2.2 (Audio Playback with Word Highlighting) */}
+              {/*
+               * Implementation steps:
+               * 1. Store ForcedAlignmentResult with message (add to Message schema in shared/types.ts)
+               * 2. Create AudioPlayer component with word-level sync:
+               *    - Use HTML5 <audio> element with currentTime tracking
+               *    - Render transcript as array of <span> elements (one per word)
+               *    - useEffect hook to monitor audio.currentTime
+               *    - Highlight current word based on alignment timestamps
+               * 3. Visual design:
+               *    - Display transcript below audio controls
+               *    - Highlighted word: bold + accent color background
+               *    - Click word to jump to that timestamp in audio
+               * 4. Data flow:
+               *    - useAudioCapture returns alignment with onTranscript callback
+               *    - Store alignment in message record (Prisma schema update needed)
+               *    - Pass alignment to AudioPlayer component
+               * 5. Fallback: If no alignment data, show plain audio player
+               *
+               * Related files:
+               * - packages/shared/src/types.ts (add alignment to Message type)
+               * - packages/database/prisma/schema.prisma (add alignment JSON field)
+               * - apps/frontend/src/hooks/useAudioCapture.ts (already returns alignment)
+               * - apps/frontend/src/services/forcedAlignment.ts (alignment utilities)
+               *
+               * Dependencies: None (all APIs integrated)
+               * assignees: codingbutter
+               * labels: enhancement, frontend, voice
+               * milestone: MVP Launch
+               */}
               {message.audioUrl && (
                 <button
                   onClick={() => onPlayAudio?.(message.audioUrl!)}

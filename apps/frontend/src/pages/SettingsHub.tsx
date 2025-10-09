@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -10,10 +11,17 @@ import {
 } from "@s2m-pac/ui";
 import { Settings, Globe, FolderGit2, MessageSquare, ChevronRight } from "lucide-react";
 import { useApp } from "../contexts/AppContext";
+import { projectsApi, type Project } from "../lib/api-client";
 
 export function SettingsHub() {
   const navigate = useNavigate();
   const { conversations, activeConversationId } = useApp();
+
+  // Fetch all projects
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: projectsApi.getAll,
+  });
 
   return (
     <div className="container mx-auto max-w-4xl p-6 space-y-6">
@@ -69,10 +77,31 @@ export function SettingsHub() {
             <p className="text-sm text-muted-foreground mb-3">
               Project settings override global defaults for all conversations within that project.
             </p>
-            {/* TODO: Fetch and list actual projects */}
-            <div className="text-sm text-muted-foreground italic">
-              No projects linked yet. Visit a project page to configure project-specific settings.
-            </div>
+            {isLoadingProjects ? (
+              <div className="text-sm text-muted-foreground italic">
+                Loading projects...
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="text-sm text-muted-foreground italic">
+                No projects yet. Create a project to configure project-specific settings.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {projects.map((project) => (
+                  <Button
+                    key={project.id}
+                    variant="outline"
+                    onClick={() => navigate(`/project/${project.id}/settings/project`)}
+                    className="w-full justify-between"
+                  >
+                    <span className="truncate">
+                      {project.name}
+                    </span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
