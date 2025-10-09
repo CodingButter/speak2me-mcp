@@ -2,16 +2,22 @@ import { describe, test, expect } from "bun:test";
 import { handleSpeak, handleListen } from "./tools";
 import type { SpeakInput, ListenInput } from "@s2m-pac/shared";
 
+// Skip integration tests if real API keys are not available
+const hasRealApiKeys = Boolean(
+  process.env.ELEVENLABS_API_KEY &&
+  process.env.OPENAI_API_KEY
+);
+
 describe("handleSpeak", () => {
   const mockContext = {
     apiKeys: {
-      openai: "sk-test-openai",
-      elevenlabs: "el-test-elevenlabs",
+      openai: process.env.OPENAI_API_KEY || "sk-test-openai",
+      elevenlabs: process.env.ELEVENLABS_API_KEY || "el-test-elevenlabs",
     },
     conversationId: "test-conv-123",
   };
 
-  test("returns valid output structure", async () => {
+  test.skipIf(!hasRealApiKeys)("returns valid output structure", async () => {
     const input: SpeakInput = {
       text: "Hello world",
       stream: true,
@@ -26,7 +32,7 @@ describe("handleSpeak", () => {
     expect(typeof result.ok).toBe("boolean");
   });
 
-  test("handles text input", async () => {
+  test.skipIf(!hasRealApiKeys)("handles text input", async () => {
     const input: SpeakInput = {
       text: "Test message",
       stream: false,
@@ -36,7 +42,7 @@ describe("handleSpeak", () => {
     expect(result.ok).toBe(true);
   });
 
-  test("handles SSML input", async () => {
+  test.skipIf(!hasRealApiKeys)("handles SSML input", async () => {
     const input: SpeakInput = {
       text: "Test",
       ssml: "<speak>Test message</speak>",
@@ -47,7 +53,7 @@ describe("handleSpeak", () => {
     expect(result.ssmlUsed).toBeTruthy();
   });
 
-  test("includes ssmlUsed in response", async () => {
+  test.skipIf(!hasRealApiKeys)("includes ssmlUsed in response", async () => {
     const input: SpeakInput = {
       text: "Hello",
     };
@@ -56,7 +62,7 @@ describe("handleSpeak", () => {
     expect(result.ssmlUsed).toBeTruthy();
   });
 
-  test("handles custom voice ID", async () => {
+  test.skipIf(!hasRealApiKeys)("handles custom voice ID", async () => {
     const input: SpeakInput = {
       text: "Hello",
       voiceId: "custom-voice-123",
@@ -66,7 +72,7 @@ describe("handleSpeak", () => {
     expect(result.ok).toBe(true);
   });
 
-  test("handles custom model", async () => {
+  test.skipIf(!hasRealApiKeys)("handles custom model", async () => {
     const input: SpeakInput = {
       text: "Hello",
       model: "eleven_multilingual_v2",
@@ -74,6 +80,21 @@ describe("handleSpeak", () => {
 
     const result = await handleSpeak(input, mockContext);
     expect(result.ok).toBe(true);
+  });
+
+  test("throws error when ElevenLabs API key is missing", async () => {
+    const contextWithoutKey = {
+      apiKeys: {
+        openai: "test",
+      },
+      conversationId: "test",
+    };
+
+    const input: SpeakInput = {
+      text: "Hello",
+    };
+
+    await expect(handleSpeak(input, contextWithoutKey)).rejects.toThrow("ElevenLabs API key not configured");
   });
 });
 
