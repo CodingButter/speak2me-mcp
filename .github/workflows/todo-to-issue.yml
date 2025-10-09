@@ -7,19 +7,23 @@ on:
   pull_request:
     branches:
       - '**'  # Trigger on PRs to all branches
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   create-issues:
+    name: Create issues from TODOs
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      contents: read
+      contents: write  # Needed for INSERT_ISSUE_URLS to commit changes
+      pull-requests: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for accurate diff
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: TODO to Issue
         uses: alstr/todo-to-issue-action@v5
@@ -33,17 +37,41 @@ jobs:
           # Close issues when TODOs are removed
           CLOSE_ISSUES: true
 
+          # Escape special characters in TODO comments
+          ESCAPE_SEQUENCES: true
+
           # Additional identifiers to scan for (besides TODO)
-          IDENTIFIERS: '[{"name": "TODO", "labels": ["todo"]}, {"name": "FIXME", "labels": ["bug", "fixme"]}, {"name": "HACK", "labels": ["tech-debt", "hack"]}, {"name": "BUG", "labels": ["bug", "todo"]}]'
+          # Each identifier can have default labels
+          IDENTIFIERS: '[
+            {"name": "TODO", "labels": ["todo"]},
+            {"name": "FIXME", "labels": ["bug", "fixme"]},
+            {"name": "HACK", "labels": ["tech-debt", "hack"]},
+            {"name": "BUG", "labels": ["bug", "todo"]},
+            {"name": "NOTE", "labels": ["documentation"]},
+            {"name": "OPTIMIZE", "labels": ["performance", "enhancement"]}
+          ]'
+
+          # Issue template for consistent formatting
+          ISSUE_TEMPLATE: |
+            **File:** `{{ file }}`
+            **Line:** {{ line }}
+            **Ref:** {{ ref }}
+            **Author:** @{{ author }}
+
+            ## Description
+            {{ body }}
+
+            ---
+            *This issue was automatically created from a TODO comment.*
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   add-to-project:
-    name: Add issues to project
+    name: Add issues to project board
     runs-on: ubuntu-latest
     needs: create-issues
-    if: github.event_name == 'push'  # Run on all branch pushes
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       issues: write
       contents: read
@@ -54,31 +82,50 @@ jobs:
         with:
           project-url: https://github.com/users/CodingButter/projects/11
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          labeled: todo,enhancement,bug,tech-debt
+          labeled: todo,enhancement,bug,tech-debt,fixme,hack,documentation,performance
           label-operator: OR
+        continue-on-error: true  # Don't fail workflow if this step fails
 
   update-project-fields:
     name: Set project field values
     runs-on: ubuntu-latest
     needs: add-to-project
-    if: github.event_name == 'push'  # Run on all branch pushes
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       issues: write
       contents: read
 
     steps:
-      - name: Set status to Backlog for new issues
+      - name: Set status and priority for new issues
         run: |
-          # Get recently created issues with 'todo' label
-          ISSUES=$(gh issue list --repo ${{ github.repository }} --label todo --state open --limit 50 --json number,createdAt --jq '.[] | select((.createdAt | fromdateiso8601) > (now - 300)) | .number')
+          echo "Finding recently created issues..."
+
+          # Get recently created issues with relevant labels (last 5 minutes)
+          ISSUES=$(gh issue list \
+            --repo ${{ github.repository }} \
+            --label todo,enhancement,bug,tech-debt,fixme,hack \
+            --state open \
+            --limit 100 \
+            --json number,createdAt,labels \
+            --jq '.[] | select((.createdAt | fromdateiso8601) > (now - 300)) | .number')
+
+          if [ -z "$ISSUES" ]; then
+            echo "No recent issues found"
+            exit 0
+          fi
+
+          echo "Found issues: $ISSUES"
 
           # Project details
           PROJECT_ID="PVT_kwHOAJyrsc4BFFPI"
           STATUS_FIELD_ID="PVTSSF_lAHOAJyrsc4BFFPIzg2hb3I"
+
+          # Status options
           BACKLOG_OPTION_ID="f75ad846"
+          TODO_OPTION_ID="TODO_OPTION_ID_HERE"  # Need to get this ID
 
           for issue_number in $ISSUES; do
-            echo "Processing issue #$issue_number"
+            echo "Processing issue #$issue_number..."
 
             # Get the issue's project item ID
             ITEM_ID=$(gh api graphql -f query='
@@ -95,7 +142,8 @@ jobs:
                     }
                   }
                 }
-              }' -f owner='CodingButter' -f repo='speak2me-mcp' -F number=$issue_number --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id == \"$PROJECT_ID\") | .id")
+              }' -f owner='CodingButter' -f repo='speak2me-mcp' -F number=$issue_number \
+              --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id == \"$PROJECT_ID\") | .id")
 
             if [ -n "$ITEM_ID" ]; then
               echo "Found project item ID: $ITEM_ID"
@@ -115,12 +163,16 @@ jobs:
                       id
                     }
                   }
-                }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" -f fieldId="$STATUS_FIELD_ID" -f value="$BACKLOG_OPTION_ID"
+                }' -f projectId="$PROJECT_ID" -f itemId="$ITEM_ID" \
+                -f fieldId="$STATUS_FIELD_ID" -f value="$BACKLOG_OPTION_ID"
 
-              echo "Set issue #$issue_number to Backlog status"
+              echo "✓ Set issue #$issue_number to Backlog status"
             else
-              echo "Issue #$issue_number not found in project"
+              echo "⚠ Issue #$issue_number not found in project (may need time to sync)"
             fi
           done
+
+          echo "Project field updates complete"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true  # Don't fail workflow if this step fails

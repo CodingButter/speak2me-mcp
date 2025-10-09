@@ -161,26 +161,86 @@ When you push commits containing new TODOs:
 3. Inserts the issue URL back into the comment (if configured)
 4. Closes the issue when the TODO is removed
 
+## Supported Identifiers
+
+The workflow recognizes multiple comment identifiers, each with automatic default labels:
+
+- **TODO** → labels: `todo`
+- **FIXME** → labels: `bug`, `fixme`
+- **HACK** → labels: `tech-debt`, `hack`
+- **BUG** → labels: `bug`, `todo`
+- **NOTE** → labels: `documentation`
+- **OPTIMIZE** → labels: `performance`, `enhancement`
+
+### Examples:
+```typescript
+// TODO: Implement feature X
+// → Creates issue with label: todo
+
+// FIXME: Authentication fails on token refresh
+// → Creates issue with labels: bug, fixme
+
+// HACK: Temporary workaround for React 18 strict mode
+// → Creates issue with labels: tech-debt, hack
+
+// BUG: Race condition in WebSocket handler
+// → Creates issue with labels: bug, todo
+
+// NOTE: Document the MCP protocol integration
+// → Creates issue with label: documentation
+
+// OPTIMIZE: Cache API responses to reduce latency
+// → Creates issue with labels: performance, enhancement
+```
+
 ## Configuration
 
 The GitHub Action is configured in `.github/workflows/todo-to-issue.yml`:
 
 ```yaml
 name: "TODO to Issue"
-on: ["push"]
+on:
+  push:
+    branches:
+      - '**'  # All branches
+  pull_request:
+    branches:
+      - '**'  # All PRs
+  workflow_dispatch:  # Manual trigger
+
 jobs:
-  build:
-    runs-on: "ubuntu-latest"
+  create-issues:
+    name: Create issues from TODOs
+    runs-on: ubuntu-latest
     permissions:
       issues: write
+      contents: write  # For INSERT_ISSUE_URLS
+      pull-requests: write
     steps:
       - uses: "actions/checkout@v4"
       - name: "TODO to Issue"
         uses: "alstr/todo-to-issue-action@v5"
         with:
-          INSERT_ISSUE_URLS: true
-          AUTO_ASSIGN: true
+          INSERT_ISSUE_URLS: true  # Insert issue URLs into code
+          AUTO_ASSIGN: true  # Assign to TODO author
+          CLOSE_ISSUES: true  # Close when TODO removed
+          ESCAPE_SEQUENCES: true  # Handle special characters
+          IDENTIFIERS: '[...]'  # Custom identifiers
+          ISSUE_TEMPLATE: |  # Custom issue format
+            **File:** `{{ file }}`
+            **Line:** {{ line }}
+            ...
 ```
+
+### Key Features:
+- **Multi-branch support**: Works on all branches, not just main
+- **Manual triggering**: Can be run manually via GitHub UI
+- **Issue URL insertion**: Automatically inserts issue URLs back into code
+- **Auto-assignment**: Issues assigned to the commit author
+- **Auto-close**: Issues closed when TODOs are removed
+- **Special characters**: Properly escapes markdown and special chars
+- **Custom templates**: Consistent issue formatting with file/line info
+- **Project integration**: Automatically adds issues to project board
 
 ## Examples from Project
 
